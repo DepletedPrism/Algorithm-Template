@@ -40,24 +40,17 @@ namespace Graph {
 
 namespace Dijkstra {
     using namespace Graph;
-    bool done[MAXN];
     LL d[MAXN];
 
     void dijkstra(int s) {
         priority_queue<Pli> PQ;
         memset(d, 0x3f, sizeof d);
-        memset(done, false, sizeof done);
-        d[s] = 0;
-        PQ.push(Pli(-d[s], s));
+        d[s] = 0, PQ.push(Pli(-d[s], s));
         while (!PQ.empty()) {
-            int u = PQ.top().second; PQ.pop();
-            if (done[u]) continue;
-            done[u] = true;
-            for (int i = head[u]; ~i; i = edges[i].nxt) {
-                int v = edges[i].to;
-                if (d[v] > d[u] + edges[i].w)
-                    d[v] = d[u] + edges[i].w, PQ.push(Pli(-d[v], v));
-            }
+            int u = PQ.top().second, w = -PQ.top().first; PQ.pop();
+            if (d[u] != w) continue;
+            for (int v, i = head[u]; ~i; i = edges[i].nxt)
+                if (d[v = edges[i].to] > d[u] + edges[i].w) PQ.push(Pli(-(d[v] = d[u] + edges[i].w), v));
         }
     }
 }

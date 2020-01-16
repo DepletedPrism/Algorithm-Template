@@ -36,15 +36,14 @@ int fpow(int base, int b) {
 namespace Poly {
     int L, R[MAXN];
     inline void init() {
-        for (int i = 1; i < Lim; ++i) R[i] = (R[i >> 1] >> 1) | ((i & 1) << (L-1));
+        for (int i = 1; i < Lim; ++i) R[i] = (R[i>>1] >> 1) | ((i & 1) << (L-1));
     }
 
     void NTT(int* A, int type) {
-        for (int i = 1; i < Lim; ++i)
-            if (i < R[i]) swap(A[i], A[R[i]]);
+        for (int i = 1; i < Lim; ++i) if (i < R[i]) swap(A[i], A[R[i]]);
         for (int Mid = 1; Mid < Lim; Mid <<= 1) {
             int unit = fpow(type > 0? G: fpow(G, P-2), (P-1) / (Mid << 1));
-            for (int i = 0; i < Lim; i += (Mid << 1)) {
+            for (int i = 0; i < Lim; i += Mid << 1) {
                 int w = 1;
                 for (int j = 0; j < Mid; ++j, w = 1LL * w * unit % P) {
                     int A0 = A[i+j], A1 = 1LL * w * A[i+j+Mid] % P;
