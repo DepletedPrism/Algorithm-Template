@@ -26,8 +26,7 @@ namespace Poly {
     }
 
     void FFT(Complex* A, int type) {
-        for (int i = 1; i < Lim; ++i)
-            if (i < R[i]) swap(A[i], A[R[i]]);
+        for (int i = 1; i < Lim; ++i) if (i < R[i]) swap(A[i], A[R[i]]);
         for (int Mid = 1; Mid < Lim; Mid <<= 1) {
             Complex unit(cos(PI / Mid), type * sin(PI / Mid));
             for (int i = 0; i < Lim; i += (Mid << 1)) {
