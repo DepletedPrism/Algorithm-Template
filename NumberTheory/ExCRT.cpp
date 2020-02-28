@@ -46,8 +46,7 @@ namespace CRT {
             exgcd(M, m[i], d, x, y);
             if (c % d != 0) return -1;
             mod = m[i] / d, x = sMul(x, c/d, mod);
-            ret += x * M, M *= mod;
-            ret = (ret % M + M) % M;
+            ret += x * M, M *= mod, ret = (ret % M + M) % M;
         }
         return ret;
     }
