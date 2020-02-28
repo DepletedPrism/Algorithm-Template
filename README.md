@@ -33,9 +33,11 @@
   
 - 数论 Number Theory
 
+  - Cipolla's Algorithm
   - 杜教筛
   - 拓展 BSGS 算法
   - 拓展中国剩余定理
+  - 扩展欧几里得算法
   - Miller-Rabin 判素
   - Min_25 筛
   - Pollard-Rho 质因数分解
