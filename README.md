@@ -11,8 +11,13 @@
   - 重链剖分
   - LCT (Link Cut Tree)
   - 左偏树
+  - 可持久化 0-1 Trie
+  - 可持久化平衡树
+  - 可持久化线段树
+  - 线段树分治
   - ST 表
   - Splay
+  - 替罪羊树
 
 - 计算几何 Geometry
 
@@ -20,6 +25,7 @@
   - 二维凸包
   - 半平面交
   - 最小圆覆盖
+  - 闵可夫斯基和
 
 - 图论 Graph
 
@@ -27,6 +33,8 @@
   - Dinic
   - KM
   - Kruskal
+  - 点分治
+  - 动态点分治
   
 - 线性代数 Linear Algebra
 
@@ -69,3 +77,7 @@
 - 杂项 Misc
 
   - 压位高精度 from [代号4101](https://blog.csdn.net/code4101/article/details/38705155)
+  - 动态 DP
+  - 插头 DP
+  - 自适应 Simpson 公式
+  - 模拟退火

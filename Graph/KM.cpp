@@ -50,15 +50,13 @@ namespace KM {
             if (T[j] != Time) a = min(a, slack[j]);
         for (int i = 1; i <= n; i++) {
             if (S[i] == Time) Lx[i] -= a;
-            if (T[i] == Time) Ly[i] += a; else slack[i] = a;
+            if (T[i] == Time) Ly[i] += a; else slack[i] -= a;
         }
     }
 
     inline void KM() {
-        for (int i = 1; i <= n; i++) {
-            Lx[i] = Ly[i] = 0, left[i] = -1;
-            for (int j = 1; j <= n; j++) Lx[i] = max(Lx[i], W[i][j]);
-        }
+        for (int i = 1; i <= n; i++)
+            left[i] = -1, Ly[i] = 0, Lx[i] = *max_element(W[i]+1, W[i]+n+1);
         for (int i = 1; i <= n; i++) {
             for (int j = 1; j <= n; j++) slack[j] = INF;
             while (true) {
