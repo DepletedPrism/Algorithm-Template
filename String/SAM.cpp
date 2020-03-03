@@ -22,13 +22,11 @@ namespace SAM {
         int nd = ++nidx, p = last;
         len[nd] = len[last] + 1, f[nd] = 1;
         while (p && !ch[v][p]) ch[v][p] = nd, p = lnk[p];
-        if (!p) {
-            lnk[nd] = 1;
-        } else {
+        if (!p) lnk[nd] = 1;
+        else {
             int q = ch[v][p];
-            if (len[q] == len[p] + 1) {
-                lnk[nd] = q;
-            } else {
+            if (len[q] == len[p] + 1) lnk[nd] = q;
+            else {
                 int nxt = ++nidx;
                 len[nxt] = len[p] + 1, lnk[nxt] = lnk[q];
                 for (int c = 0; c < SIGMA; ++c) ch[c][nxt] = ch[c][q];

@@ -25,6 +25,7 @@
 
   - Dijkstra
   - Dinic
+  - KM
   - Kruskal
   
 - 线性代数 Linear Algebra
