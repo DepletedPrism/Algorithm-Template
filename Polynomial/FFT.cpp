@@ -10,9 +10,11 @@ const int MAXN = 2e6+5;
 struct Complex {
     double x, y;
     Complex(double _x = 0.0, double _y = 0.0): x(_x), y(_y) { }
-    Complex operator - (const Complex& rhs) const { return Complex(x - rhs.x, y - rhs.y); }
     Complex operator + (const Complex& rhs) const { return Complex(x + rhs.x, y + rhs.y); }
-    Complex operator * (const Complex& rhs) const { return Complex(x*rhs.x - y*rhs.y, x*rhs.y + y*rhs.x); }
+    Complex operator - (const Complex& rhs) const { return Complex(x - rhs.x, y - rhs.y); }
+    Complex operator * (const Complex& rhs) const {
+        return Complex(x * rhs.x - y * rhs.y, x * rhs.y + y * rhs.x);
+    }
 };
 
 int n, m, Lim;

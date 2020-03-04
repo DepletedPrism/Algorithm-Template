@@ -9,6 +9,7 @@
   - CDQ 分治
   - 无旋 Treap
   - 重链剖分
+  - K-D Tree
   - LCT (Link Cut Tree)
   - 左偏树
   - 可持久化 0-1 Trie
@@ -31,10 +32,12 @@
 
   - Dijkstra
   - Dinic
+  - DSU on Tree
   - KM
   - Kruskal
   - 点分治
   - 动态点分治
+  - 虚树
   
 - 线性代数 Linear Algebra
 
