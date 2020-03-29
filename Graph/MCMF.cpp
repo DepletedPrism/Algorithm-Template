@@ -18,7 +18,7 @@ namespace IO {
     template<typename T> void read(T& x) {
         x = 0; int f = 0, ch = Gc();
         while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-        while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
+        while (isdigit(ch)) x = x * 10 - '0' + ch, ch = Gc();
         if (f) x = -x;
     }
 }
@@ -48,7 +48,7 @@ namespace MCMF {
     bool inq[MAXV];
     int d[MAXV], a[MAXV], pre[MAXV];
 
-    bool SPFA(int& flow, int& cost) {
+    bool SPFA() {
         queue<int> Q;
         memset(d, 0x3f, sizeof d);
         Q.push(S);
@@ -65,19 +65,16 @@ namespace MCMF {
                 }
             }
         }
-        if (d[T] == INF) return false;
-        flow += a[T], cost += a[T] * d[T];
-        int u = T;
-        while (u != S) {
-            edges[pre[u]].flow += a[T], edges[pre[u]^1].flow -= a[T];
-            u = edges[pre[u]^1].to;
-        }
-        return true;
+        return d[T] < INF;
     }
 
-    void MCMF(int& flow, int& cost) {
+    inline void MCMF(int& flow, int& cost) {
         flow = cost = 0;
-        while (SPFA(flow, cost)) ;
+        while (SPFA()) {
+            flow += a[T], cost += a[T] * d[T];
+            for (int u = T; u != S; u = edges[pre[u]^1].to)
+                edges[pre[u]].flow += a[T], edges[pre[u]^1].flow -= a[T];
+        }
     }
 }
 

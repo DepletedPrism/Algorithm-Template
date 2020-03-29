@@ -9,8 +9,11 @@ namespace IO {
     const int MAXSIZE = 1 << 18 | 1;
     char buf[MAXSIZE], *p1, *p2;
 
-    inline int Gc() { return p1 == p2 && (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++; }
-    template<typename T> void read(T& x) {
+    inline int Gc() {
+        return p1 == p2 &&
+            (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
+    }
+    template<typename T> inline void read(T& x) {
         x = 0; int f = 0, ch = Gc();
         while (!isdigit(ch)) f |= ch == '-', ch = Gc();
         while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
@@ -83,8 +86,8 @@ namespace Poly {
         Der(f, C, n), Inv(f, D, n);
         int Lim = 1, L = 0;
         while (Lim < 2*n) Lim <<= 1, ++L;
-        init(Lim, L);
-        NTT(C, Lim, 1), NTT(D, Lim, 1);
+        for (int i = n; i < Lim; ++i) A[i] = B[i] = 0;
+        init(Lim, L), NTT(C, Lim, 1), NTT(D, Lim, 1);
         for (int i = 0; i < Lim; ++i) C[i] = 1LL * C[i] * D[i] % P;
         NTT(C, Lim, -1), Int(C, g, n);
     }

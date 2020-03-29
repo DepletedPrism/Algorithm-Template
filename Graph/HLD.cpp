@@ -10,8 +10,11 @@ namespace IO {
     const int MAXSIZE = 1 << 18 | 1;
     char buf[MAXSIZE], *p1, *p2;
 
-    inline int Gc() { return p1 == p2 && (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++; }
-    template<typename T> void read(T& x) {
+    inline int Gc() {
+        return p1 == p2 &&
+            (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
+    }
+    template<typename T> inline void read(T& x) {
         x = 0; int f = 0, ch = Gc();
         while (!isdigit(ch)) f |= ch == '-', ch = Gc();
         while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
@@ -31,10 +34,8 @@ namespace Graph {
     int head[MAXN], eidx;
 
     inline void init() { memset(head, -1, sizeof head); eidx = 1; }
-
     inline void AddEdge(int from, int to) {
-        edges[++eidx] = (Edge){ head[from], to };
-        head[from] = eidx;
+        edges[++eidx] = (Edge){ head[from], to }, head[from] = eidx;
     }
 }
 
@@ -44,32 +45,23 @@ namespace HLD {
     int dfn[MAXN], rnk[MAXN], topfa[MAXN], dfs_clock;
 
     void dfs1(int u, int fa) {
-        pre[u] = fa; size[u] = 1;
         depth[u] = depth[fa] + 1;
-        for (int i = head[u]; ~i; i = edges[i].nxt) {
-            int v = edges[i].to;
-            if (v == fa) continue;
-            dfs1(v, u);
-            size[u] += size[v];
+        son[u] = -1, pre[u] = fa, size[u] = 1;
+        for (int v, i = head[u]; ~i; i = edges[i].nxt) {
+            if ((v = edges[i].to) == fa) continue;
+            dfs1(v, u), size[u] += size[v];
             if (son[u] == -1 || size[son[u]] < size[v]) son[u] = v;
         }
     }
 
     void dfs2(int u, int top) {
-        topfa[u] = top;
-        dfn[u] = ++dfs_clock, rnk[dfs_clock] = u;
+        topfa[u] = top, rnk[dfn[u] = ++dfs_clock] = u;
         if (~son[u]) dfs2(son[u], top);
-        for (int i = head[u]; ~i; i = edges[i].nxt) {
-            int v = edges[i].to;
-            if (v != pre[u] && v != son[u]) dfs2(v, v);
-        }
+        for (int v, i = head[u]; ~i; i = edges[i].nxt)
+            if ((v = edges[i].to) != pre[u] && v != son[u]) dfs2(v, v);
     }
 
-    inline void solve() {
-        rt = 1;
-        memset(son, -1, sizeof son);
-        dfs1(rt, 0), dfs2(rt, rt);
-    }
+    inline void solve() { rt = 1, dfs1(rt, 0), dfs2(rt, rt); }
 }
 
 namespace SGT {
@@ -78,9 +70,8 @@ namespace SGT {
 #define Mid ((R + L) / 2)
     LL datSum[MAXN << 2], tagAdd[MAXN << 2];
 
-    inline void maintain(int nd) {
-        datSum[nd] = datSum[lc] + datSum[rc];
-    }
+    inline void maintain(int nd) { datSum[nd] = datSum[lc] + datSum[rc]; }
+
     inline void pushdown(int nd, int L, int R) {
         if (tagAdd[nd]) {
             datSum[lc] += tagAdd[nd] * (Mid-L+1), datSum[rc] += tagAdd[nd] * (R-Mid);
@@ -187,24 +178,11 @@ int main() {
         int opt, u, v; LL K;
         read(opt), read(u);
         switch (opt) {
-            case 1:
-                rt = u;
-                break;
-            case 2:
-                read(v), read(K);
-                HLD::modifyChain(u, v, K);
-                break;
-            case 3:
-                read(K);
-                HLD::modifySubtree(u, K);
-                break;
-            case 4:
-                read(v);
-                printf("%lld\n", HLD::queryChain(u, v));
-                break;
-            case 5:
-                printf("%lld\n", HLD::querySubtree(u));
-                break;
+            case 1: rt = u; break;
+            case 2: read(v), read(K), HLD::modifyChain(u, v, K); break;
+            case 3: read(K), HLD::modifySubtree(u, K); break;
+            case 4: read(v), printf("%lld\n", HLD::queryChain(u, v)); break;
+            case 5: printf("%lld\n", HLD::querySubtree(u)); break;
             default: fprintf(stderr, "ERR\n");
         }
     }

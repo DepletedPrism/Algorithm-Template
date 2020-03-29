@@ -1,46 +1,42 @@
-// Luogu P3375
+// LOJ #103
 // DeP
-#include <cctype>
 #include <cstdio>
 #include <cstring>
 
-const int MAXN = 1000005;
+const int MAXN = 1e6 + 5;
 
-char S1[MAXN], S2[MAXN];
+int n, m;
+char S[MAXN], T[MAXN];
 
 namespace KMP {
     int fail[MAXN];
 
-    void getFail(char* P) {
-        int m = strlen(P);
-        fail[0] = fail[1] = 0;
-        for (int i = 1; i < m; ++i) {
-            int j = fail[i];
-            while (j && P[i] != P[j]) j = fail[j];
-            fail[i+1] = (P[i] == P[j]? j+1: 0);
+    inline void getfail() {
+        int j = fail[1] = 0;
+        for (int i = 2; i <= m; ++i) {
+            while (j && T[i] != T[j + 1]) j = fail[j];
+            fail[i] = (j += T[i] == T[j + 1]);
         }
     }
 
-    void solve(char* T, char* P) {
-        int n = strlen(T), m = strlen(P), j = 0;
-        getFail(P);
-        for (int i = 0; i < n; ++i) {
-            while (j && P[j] != T[i]) j = fail[j];
-            if (P[j] == T[i]) ++j;
-            if (j == m) printf("%d\n", i-m+2);
+    inline int match() {
+        getfail();
+        int ret = 0;
+        for (int i = 1, j = 0; i <= n; ++i) {
+            while (j && S[i] != T[j + 1]) j = fail[j];
+            if (S[i] == T[j + 1]) ++j;
+            if (j == m) ++ret;
         }
+        return ret;
     }
 }
 
 int main() {
 #ifndef ONLINE_JUDGE
-    freopen("testdata.in", "r", stdin);
-    freopen("output.out", "w", stdout);
+    freopen("input.in", "r", stdin);
 #endif
-    scanf("%s%s", S1, S2);
-    KMP::solve(S1, S2);
-    int m = strlen(S2);
-    for (int i = 1; i <= m; ++i)
-        printf("%d ", KMP::fail[i]);
+    scanf("%s%s", S+1, T+1);
+    n = strlen(S+1), m = strlen(T+1);
+    printf("%d\n", KMP::match());
     return 0;
 }

@@ -28,7 +28,7 @@ struct Complex {
     LL x, y;
     Complex(int _x, int _y): x(_x), y(_y) { }
     Complex operator * (const Complex& rhs) const {
-        return Complex((1LL * x * rhs.x + 1LL * i2 * y % Mod * rhs.y % Mod) % Mod,
+        return Complex((1LL * x * rhs.x % Mod + 1LL * i2 * y % Mod * rhs.y % Mod) % Mod,
                 (1LL * x * rhs.y % Mod + 1LL * y * rhs.x % Mod) % Mod);
     }
 };
