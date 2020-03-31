@@ -47,7 +47,8 @@ namespace Graph {
             int u = PQ.top().second, w = PQ.top().first; PQ.pop();
             if (d[u] != w) continue;
             for (int v, i = head[u]; ~i; i = edges[i].nxt)
-                if (d[v = edges[i].to] > d[u] + edges[i].w) PQ.push(Pli(d[v] = d[u] + edges[i].w, v));
+                if (d[v = edges[i].to] > d[u] + edges[i].w)
+                    PQ.push(Pli(d[v] = d[u] + edges[i].w, v));
         }
     }
 }

@@ -54,10 +54,9 @@ namespace WBT {
     }
 
     inline void Ins(int& nd, const int& v) {
-        if (!nd) {
+        if (!nd)
             nd = ++nidx, val[nd] = v, cnt[nd] = size[nd] = 1;
-            if (!root) root = nd;
-        } else {
+        else {
             if (v < val[nd]) Ins(ch[0][nd], v);
             else if (v > val[nd]) Ins(ch[1][nd], v);
             else ++cnt[nd];
