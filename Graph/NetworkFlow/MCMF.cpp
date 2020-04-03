@@ -72,8 +72,8 @@ namespace MCMF {
         flow = cost = 0;
         while (SPFA()) {
             flow += a[T], cost += a[T] * d[T];
-            for (int u = T; u != S; u = edges[pre[u]^1].to)
-                edges[pre[u]].flow += a[T], edges[pre[u]^1].flow -= a[T];
+            for (int u = T; u != S; u = edges[pre[u] ^ 1].to)
+                edges[pre[u]].flow += a[T], edges[pre[u] ^ 1].flow -= a[T];
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Graph {
     }
 }
 
-namespace SLD {
+namespace LPD {
     using namespace Graph;
     int *f[MAXN], bkt[MAXN], *id = bkt;
     int pre[MAXN], son[MAXN], d[MAXN];
@@ -64,7 +64,7 @@ int main() {
     for (int u, v, i = 1; i < n; ++i)
         scanf("%d%d", &u, &v), Graph::AddEdge(u, v), Graph::AddEdge(v, u);
     // solve
-    SLD::solve();
+    LPD::solve();
     // output
     for (int i = 1; i <= n; ++i) printf("%d\n", Ans[i]);
     return 0;

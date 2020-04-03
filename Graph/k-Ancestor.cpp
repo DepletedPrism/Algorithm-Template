@@ -34,7 +34,7 @@ inline unsigned get(unsigned x) {
 	return x ^= x << 13, x ^= x >> 17, x ^= x << 5, s = x;
 }
 
-namespace SLD {
+namespace LPD {
     vector<int> G[MAXN], U[MAXN], D[MAXN];
     int son[MAXN], d[MAXN], topfa[MAXN];
 
@@ -85,13 +85,13 @@ int main() {
     for (int i = 1; i <= n; ++i) lg2[i] = lg2[i / 2] + 1;
     int rt = -1;
     for (int i = 1; i <= n; ++i)
-        if (pre[0][i]) SLD::AddEdge(pre[0][i], i); else rt = i;
-    SLD::solve(rt);
+        if (pre[0][i]) LPD::AddEdge(pre[0][i], i); else rt = i;
+    LPD::solve(rt);
     // output
     LL ans = 0;
     for (int x, k, i = 1, lst = 0; i <= q; ++i) {
         x = (get(s) ^ lst) % n + 1, k = (get(s) ^ lst) % depth[x];
-        ans ^= 1LL * i * (lst = SLD::Jmp(x, k));
+        ans ^= 1LL * i * (lst = LPD::Jmp(x, k));
     }
     printf("%lld\n", ans);
     return 0;
