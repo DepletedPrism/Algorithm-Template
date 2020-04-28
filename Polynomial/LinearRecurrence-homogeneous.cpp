@@ -1,4 +1,4 @@
-// Luogu P4512
+// Luogu P4723
 // DeP
 #include <cctype>
 #include <cstdio>
@@ -73,8 +73,12 @@ namespace Poly {
         }
     }
 
-    void Div(int* f, const int& n, int* g, const int& m, int* Q, int* R) {
-        static int A[MAXN], B[MAXN], ig[MAXN];
+    // f <-- R, f mod g = R, f = g * Q + R
+    void Div(int* f, const int& n, int* g, const int& m) {
+        static int A[MAXN], B[MAXN], ig[MAXN], Q[MAXN], R[MAXN];
+        int df = n;
+        while (!f[df - 1]) --df;
+        if (df < m - 1) return;
         reverse(f, f + n), reverse(g, g + m);
         Inv(g, ig, n-m+1);
         int Lim = 1, L = 0;
@@ -84,6 +88,7 @@ namespace Poly {
         init(Lim, L), NTT(A, Lim, 1), NTT(B, Lim, 1);
         for (int i = 0; i < Lim; ++i) Q[i] = 1LL * A[i] * B[i] % P;
         NTT(Q, Lim, -1);
+        for (int i = n-m+1; i < Lim; ++i) Q[i] = 0;
         reverse(Q, Q + n-m+1), reverse(f, f + n), reverse(g, g + m);
         Lim = 1, L = 0;
         while (Lim < m + n-m+1) Lim <<= 1, ++L;
@@ -92,22 +97,48 @@ namespace Poly {
         init(Lim, L), NTT(A, Lim, 1), NTT(B, Lim, 1);
         for (int i = 0; i < Lim; ++i) R[i] = 1LL * A[i] * B[i] % P;
         NTT(R, Lim, -1);
-        for (int i = 0; i < m-1; ++i) R[i] = (f[i] - R[i] + P) % P;
+        for (int i = 0; i < Lim; ++i)
+            f[i] = (i < m-1)? (f[i] - R[i] + P) % P: 0;
     }
 }
 
-int n, m;
-int f[MAXN], g[MAXN], R[MAXN], Q[MAXN];
+int n, K;
+int A[MAXN], f[MAXN], g[MAXN], R[MAXN];
+int h[MAXN];
 
 int main() {
 #ifndef ONLINE_JUDGE
     freopen("input.in", "r", stdin);
 #endif
-    read(n), read(m); ++n, ++m;
-    for (int i = 0; i < n; ++i) read(f[i]);
-    for (int i = 0; i < m; ++i) read(g[i]);
-    Poly::Div(f, n, g, m, Q, R);
-    for (int i = 0; i < n-m+1; ++i) printf("%d%c", Q[i], " \n"[i == n-m]);
-    for (int i = 0; i < m-1; ++i) printf("%d%c", R[i], " \n"[i == m-2]);
+    // input
+    read(n), read(K);
+    for (int i = 1; i <= K; ++i) read(A[i]);
+    for (int i = 0; i < K; ++i) read(f[i]), f[i] = (f[i] + P) % P;
+    // init
+    g[K] = 1;
+    for (int i = 0; i < K; ++i) g[i] = (P - A[K - i] % P) % P;
+    h[1] = R[0] = 1;
+    int Lim = 1, L = 0;
+    while (Lim < K + K) Lim <<= 1, ++L;
+    Poly::init(Lim, L);
+    // solve
+    while (n > 0) {
+        if (n & 1) {
+            Poly::init(Lim, L), Poly::NTT(R, Lim, 1), Poly::NTT(h, Lim, 1);
+            for (int i = 0; i < Lim; ++i) R[i] = 1LL * R[i] * h[i] % P;
+            Poly::NTT(R, Lim, -1), Poly::NTT(h, Lim, -1);
+            Poly::Div(R, 2*K - 1, g, K+1);
+        }
+        Poly::init(Lim, L), Poly::NTT(h, Lim, 1);
+        for (int i = 0; i < Lim; ++i) h[i] = 1LL * h[i] * h[i] % P;
+        Poly::NTT(h, Lim, -1);
+        Poly::Div(h, 2*K - 1, g, K+1);
+        n >>= 1;
+    }
+    // output
+    int ans = 0;
+    for (int i = 0; i < K; ++i)
+        ans = (ans + 1LL * f[i] * R[i] % P) % P;
+    printf("%d\n", ans);
     return 0;
 }

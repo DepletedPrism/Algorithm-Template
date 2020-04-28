@@ -24,10 +24,10 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1 << 18 | 1;
+const int LOG = 18, MAXN = 1 << LOG | 1;
 const int P = 998244353, G = 3, iG = 332748118, iv2 = 499122177;
 
-int inv[MAXN];
+int W[LOG][MAXN], inv[MAXN];
 
 int fpow(int base, int b) {
     int ret = 1;
@@ -77,19 +77,18 @@ namespace Poly {
 
     void NTT(int* f, const int& Lim, const int& type) {
         for (int i = 1; i < Lim; ++i) if (i < r[i]) swap(f[i], f[r[i]]);
-        for (int Mid = 1; Mid < Lim; Mid <<= 1) {
-            int unit = fpow(type > 0? G: iG, (P - 1) / (Mid << 1));
-            for (int i = 0; i < Lim; i += Mid << 1) {
-                int w = 1;
-                for (int j = 0; j < Mid; ++j, w = 1LL * w * unit % P) {
-                    int f0 = f[i+j], f1 = 1LL * w * f[i+j+Mid] % P;
+        for (int k = 0; (1 << k) < Lim; ++k) {
+            const int *w = W[k], Mid = (1 << k);
+            for (int i = 0; i < Lim; i += Mid << 1)
+                for (int j = 0; j < Mid; ++j) {
+                    int f0 = f[i+j], f1 = 1LL * w[j] * f[i+j+Mid] % P;
                     f[i+j] = (f0 + f1) % P, f[i+j+Mid] = (f0 - f1 + P) % P;
                 }
-            }
         }
         if (type < 0) {
-            int inv = fpow(Lim, P-2);
+            int inv = fpow(Lim, P - 2);
             for (int i = 0; i < Lim; ++i) f[i] = 1LL * f[i] * inv % P;
+            reverse(f + 1, f + Lim);
         }
     }
 
@@ -168,6 +167,17 @@ namespace Poly {
     }
 }
 
+void PolyPre(int N) {
+    for (int w, i = 0; i < LOG; ++i) {
+        W[i][0] = 1, w = fpow(G, (P - 1) / (1 << (i+1)));
+        for (int j = 1; j < (1 << i); ++j)
+            W[i][j] = 1LL * w * W[i][j - 1] % P;
+    }
+    inv[0] = inv[1] = 1;
+    for (int i = 2; i <= N; ++i)
+        inv[i] = 1LL * (P - P / i) * inv[P % i] % P;
+}
+
 int n, K;
 int f[MAXN], g[MAXN], h[MAXN];
 
@@ -179,8 +189,7 @@ int main() {
     read(n), read(K), ++n;
     for (int i = 0; i < n; ++i) read(f[i]);
     // init
-    inv[0] = inv[1] = 1;
-    for (int i = 2; i <= n; ++i) inv[i] = 1LL * (P - P / i) * inv[P % i] % P;
+    PolyPre(n);
     // sovle
     Poly::Sqrt(f, h, n), Poly::Inv(h, g, n), Poly::Int(g, h, n), Poly::Exp(h, g, n);
     f[0] = 2;

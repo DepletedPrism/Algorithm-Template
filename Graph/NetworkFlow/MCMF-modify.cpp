@@ -1,5 +1,6 @@
 // LOJ #102
 // DeP
+#include <queue>
 #include <cctype>
 #include <cstdio>
 #include <cstring>
@@ -41,35 +42,50 @@ namespace Graph {
 
 namespace MCMF {
     using namespace Graph;
-    bool inq[MAXV];
-    int d[MAXV], a[MAXV], pre[MAXV];
+    int cur[MAXV], d[MAXV], vis[MAXV], Time;
 
     bool SPFA() {
-        static int Q[MAXV << 2], h, t;
+        queue<int> Q;
         memset(d, 0x3f, sizeof d);
-        Q[h = t = 1] = S;
-        pre[S] = d[S] = 0, a[S] = INF, inq[S] = true;
-        while (h <= t) {
-            int u = Q[h++];
-            inq[u] = false;
+        Q.push(S);
+        vis[S] = ++Time, d[S] = 0;
+        while (!Q.empty()) {
+            int u = Q.front(); Q.pop();
+            vis[u] = 0;
             for (int i = head[u]; ~i; i = edges[i].nxt) {
                 const Edge& e = edges[i];
                 if (d[e.to] > d[u] + e.cost && e.cap > e.flow) {
-                    a[e.to] = min(a[u], e.cap - e.flow);
-                    d[e.to] = d[u] + e.cost, pre[e.to] = i;
-                    if (!inq[e.to]) Q[++t] = e.to, inq[e.to] = true;
+                    d[e.to] = d[u] + e.cost;
+                    if (vis[e.to] != Time) Q.push(e.to), vis[e.to] = Time;
                 }
             }
         }
         return d[T] < INF;
     }
 
+    int DFS(int u, int a, int& cost) {
+        if (u == T || !a) return a;
+        vis[u] = Time;
+        int f, flow = 0;
+        for (int& i = cur[u]; ~i; i = edges[i].nxt) {
+            Edge& e = edges[i];
+            if (vis[e.to] != Time && d[e.to] == d[u] + e.cost &&
+                    (f = DFS(e.to, min(a, e.cap - e.flow), cost)) > 0) {
+                cost += f * edges[i].cost;
+                flow += f, a -= f, e.flow += f, edges[i ^ 1].flow -= f;
+                if (!a) break;
+            }
+        }
+        return flow;
+    }
+
     void MCMF(int& flow, int& cost) {
         flow = cost = 0;
         while (SPFA()) {
-            flow += a[T], cost += a[T] * d[T];
-            for (int u = T; u != S; u = edges[pre[u] ^ 1].to)
-                edges[pre[u]].flow += a[T], edges[pre[u] ^ 1].flow -= a[T];
+            do {
+                memcpy(cur, head, sizeof cur), ++Time;
+                flow += DFS(S, INF, cost);
+            } while (vis[T] == Time);
         }
     }
 }
@@ -83,7 +99,7 @@ int main() {
     // input
     read(n), read(m);
     S = 1, T = n;
-    while (m--) {
+    for (int i = 1; i <= m; ++i) {
         static int u, v, c, w;
         read(u), read(v), read(c), read(w);
         Graph::AddEdge(u, v, c, w);
