@@ -11,7 +11,10 @@ namespace IO {
   const int MAXSIZE = 1 << 18 | 1;
   char buf[MAXSIZE], *p1, *p2;
 
-  inline int Gc() { return p1 == p2 && (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++; }
+  inline int Gc() {
+    return p1 == p2 &&
+      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
+  }
   template<typename T> inline void read(T& x) {
     x = 0; int f = 0, ch = Gc();
     while (!isdigit(ch)) f |= ch == '-', ch = Gc();
@@ -89,7 +92,9 @@ namespace HLD {
     }
     return depth[u] > depth[v]? v: u;
   }
-  inline int Dist(int u, int v) { return depth[u] + depth[v] - 2 * depth[LCA(u, v)]; }
+  inline int Dist(int u, int v) {
+    return depth[u] + depth[v] - 2 * depth[LCA(u, v)];
+  }
 
   inline void solve() { dfs1(1, 0), dfs2(1, 1); }
 }
@@ -154,7 +159,8 @@ int main() {
   HLD::solve();
   TreeDivide::solve();
   for (int u = 1; u <= n; ++u)
-    for (int fa = u; fa; fa = pre[fa]) dist[depth[u] - depth[fa]][u] = HLD::Dist(u, fa);
+    for (int fa = u; fa; fa = pre[fa])
+      dist[depth[u] - depth[fa]][u] = HLD::Dist(u, fa);
   // output
   read(m);
   while (m--) {

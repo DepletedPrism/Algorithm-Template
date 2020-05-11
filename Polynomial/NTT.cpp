@@ -1,4 +1,4 @@
-// LOJ #108
+// UOJ #34
 // DeP
 #include <cctype>
 #include <cstdio>
@@ -22,8 +22,9 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1 << 18 | 1;
-const int P = 998244353, G = 3, iG = 332748118;
+const int LOG = 18, MAXN = 1 << LOG | 1, P = 998244353, G = 3;
+
+int W[LOG][MAXN];
 
 int fpow(int base, int b) {
     int ret = 1;
@@ -42,20 +43,27 @@ namespace Poly {
 
     void NTT(int* f, const int& Lim, const int& type) {
         for (int i = 1; i < Lim; ++i) if (i < r[i]) swap(f[i], f[r[i]]);
-        for (int Mid = 1; Mid < Lim; Mid <<= 1) {
-            int unit = fpow(type > 0? G: iG, (P - 1) / (Mid << 1));
-            for (int i = 0; i < Lim; i += Mid << 1) {
-                int w = 1;
-                for (int j = 0; j < Mid; ++j, w = 1LL * w * unit % P) {
-                    int f0 = f[i+j], f1 = 1LL * w * f[i+j+Mid] % P;
+        for (int k = 0, Mid = 1; Mid < Lim; ++k, Mid <<= 1) {
+            const int* w = W[k];
+            for (int i = 0; i < Lim; i += Mid << 1)
+                for (int j = 0; j < Mid; ++j) {
+                    int f0 = f[i+j], f1 = 1LL * w[j] * f[i+j+Mid] % P;
                     f[i+j] = (f0 + f1) % P, f[i+j+Mid] = (f0 - f1 + P) % P;
                 }
-            }
         }
         if (type < 0) {
-            int inv = fpow(Lim, P-2);
+            int inv = fpow(Lim, P - 2);
             for (int i = 0; i < Lim; ++i) f[i] = 1LL * f[i] * inv % P;
+            reverse(f + 1, f + Lim);
         }
+    }
+}
+
+void PolyPre() {
+    for (int w, i = 0, Mid = 1; i < LOG; ++i, Mid <<= 1) {
+        W[i][0] = 1, w = fpow(G, (P - 1) / (Mid << 1));
+        for (int j = 1; j < Mid; ++j)
+            W[i][j] = 1LL * w * W[i][j - 1] % P;
     }
 }
 
@@ -67,12 +75,13 @@ int main() {
     freopen("input.in", "r", stdin);
 #endif
     // input
-    read(n), read(m); ++n, ++m;
+    read(n), read(m), ++n, ++m;
     for (int i = 0; i < n; ++i) read(f[i]);
     for (int j = 0; j < m; ++j) read(g[j]);
     // solve
+    PolyPre();
     int Lim = 1, L = 0;
-    while (Lim < n + m - 2) Lim <<= 1, ++L;
+    while (Lim < n + m - 1) Lim <<= 1, ++L;
     Poly::init(Lim, L), Poly::NTT(f, Lim, 1), Poly::NTT(g, Lim, 1);
     for (int i = 0; i < Lim; ++i) f[i] = 1LL * f[i] * g[i] % P;
     Poly::NTT(f, Lim, -1);
