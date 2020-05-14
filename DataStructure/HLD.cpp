@@ -67,13 +67,13 @@ namespace HLD {
 namespace SGT {
 #define lc (nd<<1)
 #define rc (nd<<1|1)
-#define Mid ((R + L) / 2)
   LL datSum[MAXN << 2], tagAdd[MAXN << 2];
 
   inline void maintain(int nd) { datSum[nd] = datSum[lc] + datSum[rc]; }
 
   inline void pushdown(int nd, int L, int R) {
     if (tagAdd[nd]) {
+      int Mid = (L + R) / 2;
       datSum[lc] += tagAdd[nd] * (Mid-L+1), datSum[rc] += tagAdd[nd] * (R-Mid);
       tagAdd[lc] += tagAdd[nd], tagAdd[rc] += tagAdd[nd];
       tagAdd[nd] = 0;
@@ -81,36 +81,39 @@ namespace SGT {
   }
 
   void build(int nd, int L, int R) {
-    if (L == R) return void(datSum[nd] = A[HLD::rnk[L]]);
+    if (L == R)
+      return void( datSum[nd] = A[HLD::rnk[L]] );
+    int Mid = (L + R) / 2;
     build(lc, L, Mid), build(rc, Mid+1, R);
     maintain(nd);
   }
 
-  void modify(int nd, int L, int R, const int& opL, const int& opR, const LL& val) {
+  void Mdy(int nd, int L, int R, int opL, int opR, const LL& val) {
     if (opL <= L && R <= opR) {
       datSum[nd] += val * (R-L+1), tagAdd[nd] += val; return;
     }
     pushdown(nd, L, R);
-    if (opL <= Mid) modify(lc, L, Mid, opL, opR, val);
-    if (opR > Mid) modify(rc, Mid+1, R, opL, opR, val);
+    int Mid = (L + R) / 2;
+    if (opL <= Mid) Mdy(lc, L, Mid, opL, opR, val);
+    if (opR > Mid) Mdy(rc, Mid+1, R, opL, opR, val);
     maintain(nd);
   }
 
-  LL query(int nd, int L, int R, const int& opL, const int& opR) {
+  LL Qry(int nd, int L, int R, const int& opL, const int& opR) {
     if (opL <= L && R <= opR) return datSum[nd];
     LL ret = 0;
     pushdown(nd, L, R);
-    if (opL <= Mid) ret += query(lc, L, Mid, opL, opR);
-    if (opR > Mid) ret += query(rc, Mid+1, R, opL, opR);
+    int Mid = (L + R) / 2;
+    if (opL <= Mid) ret += Qry(lc, L, Mid, opL, opR);
+    if (opR > Mid) ret += Qry(rc, Mid+1, R, opL, opR);
     return ret;
   }
 #undef lc
 #undef rc
-#undef Mid
 }
 
 namespace HLD {
-  inline int child(int u, int v) {
+  inline int FndSon(int u, int v) {
     while (topfa[u] != topfa[v]) {
       u = topfa[u];
       if (pre[u] == v) return u;
@@ -119,41 +122,43 @@ namespace HLD {
     return son[v];
   }
 
-  void modifyChain(int u, int v, const LL& val) {
+  void MdyChn(int u, int v, const LL& val) {
     while (topfa[u] != topfa[v]) {
       if (depth[topfa[u]] < depth[topfa[v]]) swap(u, v);
-      SGT::modify(1, 1, n, dfn[topfa[u]], dfn[u], val);
+      SGT::Mdy(1, 1, n, dfn[topfa[u]], dfn[u], val);
       u = pre[topfa[u]];
     }
     if (dfn[u] > dfn[v]) swap(u, v);
-    SGT::modify(1, 1, n, dfn[u], dfn[v], val);
+    SGT::Mdy(1, 1, n, dfn[u], dfn[v], val);
   }
-  void modifySubtree(int u, const LL& val) {
-    if (u == rt) return SGT::modify(1, 1, n, 1, n, val);
-    if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u]+size[u]-1) {
-      int t = child(rt, u);
-      return SGT::modify(1, 1, n, 1, n, val), SGT::modify(1, 1, n, dfn[t], dfn[t]+size[t]-1, -val);
+  void MdySub(int u, const LL& val) {
+    if (u == rt) return SGT::Mdy(1, 1, n, 1, n, val);
+    if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u] + size[u] - 1) {
+      int t = FndSon(rt, u);
+      SGT::Mdy(1, 1, n, 1, n, val);
+      return SGT::Mdy(1, 1, n, dfn[t], dfn[t] + size[t] - 1, -val);
     }
-    return SGT::modify(1, 1, n, dfn[u], dfn[u]+size[u]-1, val);
+    return SGT::Mdy(1, 1, n, dfn[u], dfn[u] + size[u] - 1, val);
   }
 
-  LL queryChain(int u, int v) {
+  LL QryChn(int u, int v) {
     LL ret = 0;
     while (topfa[u] != topfa[v]) {
       if (depth[topfa[u]] < depth[topfa[v]]) swap(u, v);
-      ret += SGT::query(1, 1, n, dfn[topfa[u]], dfn[u]);
+      ret += SGT::Qry(1, 1, n, dfn[topfa[u]], dfn[u]);
       u = pre[topfa[u]];
     }
     if (dfn[u] > dfn[v]) swap(u, v);
-    return ret + SGT::query(1, 1, n, dfn[u], dfn[v]);
+    return ret + SGT::Qry(1, 1, n, dfn[u], dfn[v]);
   }
-  LL querySubtree(int u) {
-    if (u == rt) return SGT::query(1, 1, n, 1, n);
+  LL QrySub(int u) {
+    if (u == rt) return SGT::Qry(1, 1, n, 1, n);
     if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u]+size[u]-1) {
-      int t = child(rt, u);
-      return SGT::query(1, 1, n, 1, n) - SGT::query(1, 1, n, dfn[t], dfn[t]+size[t]-1);
+      int t = FndSon(rt, u);
+      return SGT::Qry(1, 1, n, 1, n)
+        - SGT::Qry(1, 1, n, dfn[t], dfn[t] + size[t] - 1);
     }
-    return SGT::query(1, 1, n, dfn[u], dfn[u]+size[u]-1);
+    return SGT::Qry(1, 1, n, dfn[u], dfn[u] + size[u] - 1);
   }
 }
 
@@ -178,10 +183,10 @@ int main() {
     read(opt), read(u);
     switch (opt) {
       case 1: rt = u; break;
-      case 2: read(v), read(K), HLD::modifyChain(u, v, K); break;
-      case 3: read(K), HLD::modifySubtree(u, K); break;
-      case 4: read(v), printf("%lld\n", HLD::queryChain(u, v)); break;
-      case 5: printf("%lld\n", HLD::querySubtree(u)); break;
+      case 2: read(v), read(K), HLD::MdyChn(u, v, K); break;
+      case 3: read(K), HLD::MdySub(u, K); break;
+      case 4: read(v), printf("%lld\n", HLD::QryChn(u, v)); break;
+      case 5: printf("%lld\n", HLD::QrySub(u)); break;
       default: fprintf(stderr, "ERR\n");
     }
   }
