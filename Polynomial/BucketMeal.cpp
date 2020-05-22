@@ -26,7 +26,8 @@ using IO::read;
 
 const int LOG = 18, MAXN = 1 << LOG | 1, P = 998244353, G = 3, iv2 = 499122177;
 
-int W[LOG][MAXN], inv[MAXN];
+int W[LOG][MAXN];
+int fac[MAXN], ifac[MAXN], inv[MAXN];
 
 int fpow(int base, int b) {
   int ret = 1;
@@ -76,8 +77,8 @@ namespace Poly {
 
   void NTT(int* f, const int& Lim, const int& type) {
     for (int i = 1; i < Lim; ++i) if (i < r[i]) swap(f[i], f[r[i]]);
-    for (int k = 0; (1 << k) < Lim; ++k) {
-      const int *w = W[k], Mid = (1 << k);
+    for (int k = 0, Mid = 1; Mid < Lim; ++k, Mid <<= 1) {
+      const int *w = W[k];
       for (int i = 0; i < Lim; i += Mid << 1)
         for (int j = 0; j < Mid; ++j) {
           int f0 = f[i+j], f1 = 1LL * w[j] * f[i+j+Mid] % P;
@@ -85,15 +86,15 @@ namespace Poly {
         }
     }
     if (type < 0) {
-      int inv = fpow(Lim, P - 2);
-      for (int i = 0; i < Lim; ++i) f[i] = 1LL * f[i] * inv % P;
+      int iv = fpow(Lim, P - 2);
+      for (int i = 0; i < Lim; ++i) f[i] = 1LL * f[i] * iv % P;
       reverse(f + 1, f + Lim);
     }
   }
 
   void Inv(int* f, int* g, const int& n) {
     static int A[MAXN], B[MAXN];
-    g[0] = fpow(f[0], P-2);
+    g[0] = fpow(f[0], P - 2);
     for (int L = 0, Lim = 1, Mid = 2; Mid < 2*n; Mid <<= 1) {
       while (Lim < 2*Mid) Lim <<= 1, ++L;
       for (int i = 0; i < Mid; ++i) A[i] = f[i], B[i] = g[i];
@@ -117,38 +118,40 @@ namespace Poly {
       init(Lim, L), NTT(A, Lim, 1), NTT(B, Lim, 1);
       for (int i = 0; i < Lim; ++i) A[i] = 1LL * A[i] * B[i] % P;
       NTT(A, Lim, -1);
-      for (int i = 0; i < min(n, Mid); ++i) g[i] = 1LL * iv2 * (g[i] + A[i]) % P;
+      for (int i = 0; i < min(n, Mid); ++i)
+        g[i] = 1LL * iv2 * (g[i] + A[i]) % P;
       for (int i = min(n, Mid); i < Lim; ++i) g[i] = 0;
     }
   }
 
   inline void Der(int* f, int* g, const int& n) {
-    for (int i = 1; i < n; ++i) g[i-1] = 1LL * i * f[i] % P;
-    g[n-1] = 0;
+    for (int i = 1; i < n; ++i) g[i - 1] = 1LL * i * f[i] % P;
+    g[n - 1] = 0;
   }
   inline void Int(int* f, int* g, const int& n) {
-    for (int i = n-1; i; --i) g[i] = 1LL * inv[i] * f[i-1] % P;
+    for (int i = n - 1; i; --i) g[i] = 1LL * inv[i] * f[i - 1] % P;
     g[0] = 0;
   }
 
   void Ln(int* f, int* g, const int& n) {
-    static int A[MAXN], B[MAXN];
-    Der(f, A, n), Inv(f, B, n);
+    static int df[MAXN], ivf[MAXN];
+    Der(f, df, n), Inv(f, ivf, n);
     int Lim = 1, L = 0;
     while (Lim < 2*n) Lim <<= 1, ++L;
-    for (int i = n; i < Lim; ++i) A[i] = B[i] = 0;
-    init(Lim, L), NTT(A, Lim, 1), NTT(B, Lim, 1);
-    for (int i = 0; i < Lim; ++i) A[i] = 1LL * A[i] * B[i] % P;
-    NTT(A, Lim, -1), Int(A, g, n);
+    for (int i = n; i < Lim; ++i) df[i] = ivf[i] = 0;
+    init(Lim, L), NTT(df, Lim, 1), NTT(ivf, Lim, 1);
+    for (int i = 0; i < Lim; ++i) df[i] = 1LL * df[i] * ivf[i] % P;
+    NTT(df, Lim, -1), Int(df, g, n);
   }
 
   void Exp(int* f, int* g, const int& n) {
-    static int lng[MAXN], A[MAXN], B[MAXN];
+    static int A[MAXN], B[MAXN], lng[MAXN];
     g[0] = 1;
     for (int L = 0, Lim = 1, Mid = 2; Mid < 2*n; Mid <<= 1) {
       Ln(g, lng, Mid);
       while (Lim < 2*Mid) Lim <<= 1, ++L;
-      for (int i = 0; i < Mid; ++i) A[i] = (f[i] - lng[i] + P) % P, B[i] = g[i];
+      for (int i = 0; i < Mid; ++i)
+        A[i] = (f[i] - lng[i] + P) % P, B[i] = g[i];
       A[0] = (A[0] + 1) % P;
       for (int i = Mid; i < Lim; ++i) A[i] = B[i] = 0;
       init(Lim, L), NTT(A, Lim, 1), NTT(B, Lim, 1);
@@ -167,14 +170,19 @@ namespace Poly {
 }
 
 void PolyPre(int N) {
-  for (int w, i = 0; i < LOG; ++i) {
-    W[i][0] = 1, w = fpow(G, (P - 1) / (1 << (i+1)));
-    for (int j = 1; j < (1 << i); ++j)
-      W[i][j] = 1LL * w * W[i][j - 1] % P;
-  }
-  inv[0] = inv[1] = 1;
+  inv[1] = 1;
   for (int i = 2; i <= N; ++i)
     inv[i] = 1LL * (P - P / i) * inv[P % i] % P;
+  ifac[0] = fac[0] = 1;
+  for (int i = 1; i <= N; ++i) {
+    fac[i] = 1LL * fac[i - 1] * i % P;
+    ifac[i] = 1LL * ifac[i - 1] * inv[i] % P;
+  }
+  for (int w, i = 0, Mid = 1; i < LOG; ++i, Mid <<= 1) {
+    W[i][0] = 1, w = fpow(G, (P - 1) / (Mid << 1));
+    for (int j = 1; j < Mid; ++j)
+      W[i][j] = 1LL * w * W[i][j - 1] % P;
+  }
 }
 
 int n, K;
@@ -197,6 +205,7 @@ int main() {
   read(n), read(K), ++n;
   for (int i = 0; i < n; ++i) read(f[i]);
   PolyPre(n), Solve();
-  for (int i = 0; i < n-1; ++i) printf("%d%c", g[i], " \n"[i == n-2]);
+  for (int i = 0; i < n-1; ++i)
+    printf("%d%c", g[i], " \n"[i == n - 2]);
   return 0;
 }

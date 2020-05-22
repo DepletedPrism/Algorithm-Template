@@ -7,18 +7,13 @@
 using namespace std;
 
 namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
+  const int MAXSIZE = 1 << 26 | 1;
+  char buf[MAXSIZE], *p = buf;
 
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
-  }
-  inline int read(char* s) {
-    int lgt = 0, ch = Gc();
-    while (isspace(ch)) ch = Gc();
-    while (!isspace(ch)) s[++lgt] = ch, ch = Gc();
-    return s[lgt + 1] = '\0', lgt;
+  inline void init() { buf[fread(buf, 1, MAXSIZE, stdin)] = '\n'; }
+  inline void read(char* s) {
+    while (isspace(*p)) ++p;
+    while (!isspace(*p)) *s++ = *p++;
   }
 }
 using IO::read;
@@ -26,10 +21,22 @@ using IO::read;
 typedef long long LL;
 const int MAXN = 2e7 + 5;
 
+int n, m;
+char P[MAXN], T[MAXN];
+
 int z[MAXN], p[MAXN];
 
-void Z(char* P, const int& n) {
-  z[1] = n;
+int main() {
+#ifndef ONLINE_JUDGE
+  freopen("input.in", "r", stdin);
+#endif
+  IO::init();
+  read(T + 1), read(P + 1);
+
+  LL a1 = 0, a2 = 0;
+  n = strlen(P + 1), m = strlen(T + 1);
+
+  z[1] = n, a1 ^= (n + 1);
   for (int L = 0, R = 0, i = 2; i <= n; ++i) {
     if (i <= R)
       z[i] = min(R - i + 1, z[i - L + 1]);
@@ -37,11 +44,9 @@ void Z(char* P, const int& n) {
       ++z[i];
     if (i + z[i] - 1 > R)
       L = i, R = i + z[i] - 1;
+    a1 ^= 1LL * i * (z[i] + 1);
   }
-}
 
-void ExKMP(char* P, const int& n, char* T, const int& m) {
-  Z(P, n);
   for (int L = 0, R = 0, i = 1; i <= m; ++i) {
     if (i <= R)
       p[i] = min(R - i + 1, z[i - L + 1]);
@@ -49,22 +54,9 @@ void ExKMP(char* P, const int& n, char* T, const int& m) {
       ++p[i];
     if (i + p[i] - 1 > R)
       L = i, R = i + p[i] - 1;
+    a2 ^= 1LL * i * (p[i] + 1);
   }
-}
 
-int n, m;
-char P[MAXN], T[MAXN];
-
-int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  m = read(T), n = read(P);
-  ExKMP(P, n, T, m);
-
-  LL a1 = 0, a2 = 0;
-  for (int i = 1; i <= n; ++i) a1 ^= (LL) i * (z[i] + 1);
-  for (int i = 1; i <= m; ++i) a2 ^= (LL) i * (p[i] + 1);
   printf("%lld\n%lld\n", a1, a2);
   return 0;
 }
