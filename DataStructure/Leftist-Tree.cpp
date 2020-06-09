@@ -22,7 +22,7 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1e5+5;
+const int MAXN = 1e5 + 5;
 
 int n, m;
 

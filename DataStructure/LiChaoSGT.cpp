@@ -74,7 +74,7 @@ namespace SGT {
 
   LL QryMin(int nd, int L, int R, const int& pos) {
     assert(L < R || (L == R && L == pos));
-    if (L == R) return calc(datMin[nd], L);
+    if (L == R) return tagMin[nd]? calc(datMin[nd], L): INFLL;
     LL ret = tagMin[nd]? calc(datMin[nd], pos): INFLL;
     if (pos <= Mid) ret = min(ret, QryMin(lc, L, Mid, pos));
     else ret = min(ret, QryMin(rc, Mid+1, R, pos));
@@ -83,7 +83,7 @@ namespace SGT {
 
   LL QryMax(int nd, int L, int R, const int& pos) {
     assert(L < R || (L == R && L == pos));
-    if (L == R) return calc(datMax[nd], L);
+    if (L == R) return tagMax[nd]? calc(datMax[nd], L): -INFLL;
     LL ret = tagMax[nd]? calc(datMax[nd], pos): -INFLL;
     if (pos <= Mid) ret = max(ret, QryMax(lc, L, Mid, pos));
     else ret = max(ret, QryMax(rc, Mid+1, R, pos));

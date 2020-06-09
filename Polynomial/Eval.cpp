@@ -75,18 +75,6 @@ namespace Poly {
 
   typedef vector<int> poly;
 
-  void Mul(int* f, const int& n, int* g, const int& m, int* h) {
-    static int A[MAXN], B[MAXN];
-    int Lim = 1;
-    while (Lim < n + m - 1) Lim <<= 1;
-    for (int i = 0; i < Lim; ++i)
-      A[i] = (i < n)? f[i]: 0, B[i] = (i < m)? g[i]: 0;
-    init(Lim), NTT(A, Lim, 1), NTT(B, Lim, 1);
-    for (int i = 0; i < Lim; ++i) A[i] = 1LL * A[i] * B[i] % P;
-    NTT(A, Lim, -1);
-    for (int i = 0; i < n + m - 1; ++i) h[i] = A[i];
-  }
-
   poly Mul(const poly& f, const poly& g) {
     static int A[MAXN], B[MAXN];
     int Lim = 1, n = f.size(), m = g.size();
@@ -151,9 +139,10 @@ namespace Poly {
     static int t[MAXN], ivt[MAXN];
     n = max(n, m), EvalPre(1, 0, n - 1, a);
     for (int i = 0; i < n; ++i) t[i] = T[1][i];
-    Inv(t, ivt, n), reverse(ivt, ivt + n), Mul(ivt, n, f, n, t);
+    Inv(t, ivt, n), reverse(ivt, ivt + n);
+    poly h = Mul(poly(ivt, ivt + n), poly(f, f + n));
     F[0].resize(n);
-    for (int i = 0; i < n; ++i) F[0][i] = t[i + n - 1];
+    for (int i = 0; i < n; ++i) F[0][i] = h[i + n - 1];
     EvalDiv(1, 0, 0, n - 1, g);
   }
 }
