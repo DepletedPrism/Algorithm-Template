@@ -5,43 +5,34 @@
 #include <algorithm>
 using namespace std;
 
-const int MAXN = 11000005, MAXM = 3 * MAXN;
+const int MAXN = 1.1e7 + 5, MAXM = MAXN << 1 | 1;
 
-char S[MAXN];
+int n, m;
+char S[MAXN], T[MAXM];
 
-namespace Manacher {
-    const char BEG = '$', MID = '#';
-    char T[MAXM];
-    int MaxR[MAXM];
-
-    int turnT(char* S) {
-        int len = strlen(S), j = 2;
-        T[0] = BEG, T[1] = MID;
-        for (int i = 0; i < len; ++i)
-            T[j++] = S[i], T[j++] = MID;
-        return T[j] = '\0', j;
-    }
-
-    int solve(char* S) {
-        int len = turnT(S);
-        int Mid = 0, mx = 0, ret = -1;
-        for (int i = 1; i < len; ++i) {
-            MaxR[i] = (i < mx)? min(MaxR[Mid*2 - i], mx - i): 1;
-            while (T[i+MaxR[i]] == T[i-MaxR[i]]) ++MaxR[i];
-            if (mx < i+MaxR[i]) mx = i+MaxR[i], Mid = i;
-            ret = max(ret, MaxR[i]-1);
-        }
-        return ret;
-    }
-}
+int MxR[MAXM];
 
 int main() {
 #ifndef ONLINE_JUDGE
-    freopen("testdata.in", "r", stdin);
+  freopen("input.in", "r", stdin);
 #endif
-    // input
-    scanf("%s", S);
-    // output
-    printf("%d", Manacher::solve(S));
-    return 0;
+  scanf("%s", S + 1);
+
+  n = (int) strlen(S + 1);
+  T[0] = '$', T[1] = '#';
+  for (int i = 1; i <= n; ++i)
+    T[i << 1] = S[i], T[i << 1 | 1] = '#';
+  m = n << 1 | 1;
+  for (int i = 1, p = 0, Mid = 0; i <= m; ++i) {
+    MxR[i] = (i < p)? min(MxR[2 * Mid - i], p - i): 1;
+    while (T[i - MxR[i]] == T[i + MxR[i]]) ++MxR[i];
+    if (p < i + MxR[i])
+      p = i + MxR[i], Mid = i;
+  }
+
+  int ans = 0;
+  for (int i = 1; i <= m; ++i) ans = max(ans, MxR[i] - 1);
+
+  printf("%d\n", ans);
+  return 0;
 }
