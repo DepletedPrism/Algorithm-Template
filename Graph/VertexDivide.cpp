@@ -77,9 +77,10 @@ namespace TreeDiv {
         for (int k = 1; k <= m; ++k)
           if (subdist[j] <= Q[k]) Ans[k] |= Judge[Q[k] - subdist[j]];
       for (int j = 1; j <= subidx; ++j)
-        if (subdist[j] < MAXK) Judge[subdist[j]] = true, stk[++top] = subdist[j];
+        if (subdist[j] < MAXK)
+          Judge[subdist[j]] = true, stk[++top] = subdist[j];
     }
-    while (top) Judge[stk[top--]] = false;
+    while (top > 0) Judge[stk[top--]] = false;
   }
 
   void Divide(int u) {

@@ -1,6 +1,5 @@
 // Luogu P3387
 // DeP
-#include <queue>
 #include <cctype>
 #include <cstdio>
 #include <cstring>
@@ -24,14 +23,16 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1e4+5, MAXM = 1e5+5;
+const int MAXN = 1e4 + 5, MAXM = 1e5 + 5;
+const int INF = 0x3f3f3f3f;
 
 int n, m;
-int val[MAXN], deg[MAXN];
+int A[MAXN];
 
-struct Edge { int nxt, to; };
+int deg[MAXN], W[MAXN], f[MAXN];
+
 struct Graph {
-  Edge edges[MAXM];
+  struct Edge { int nxt, to; } edges[MAXM];
   int head[MAXN], eidx;
 
   Graph() { init(); }
@@ -40,63 +41,54 @@ struct Graph {
   inline void AddEdge(int from, int to) {
     edges[++eidx] = (Edge){ head[from], to }, head[from] = eidx;
   }
-} G1, G2;
+} G, D;
 
 namespace SCC {
   int dfn[MAXN], low[MAXN], clk;
-  int SCCidx[MAXN], SCCval[MAXN], SCCcnt;
-  int stk[MAXN], top;
+  int stk[MAXN], Idx[MAXN], cnt, top;
 
-  void tarjan(int u, const Graph& G) {
+  void tarjan(int u) {
     dfn[u] = low[u] = ++clk, stk[++top] = u;
-    for (int i = G.head[u]; ~i; i = G.edges[i].nxt) {
-      int v = G.edges[i].to;
-      if (!dfn[v]) {
-        tarjan(v, G);
-        low[u] = min(low[u], low[v]);
-      } else if (!SCCidx[v]) low[u] = min(low[u], dfn[v]);
+    for (int v, i = G.head[u]; ~i; i = G.edges[i].nxt) {
+      if (!dfn[v = G.edges[i].to])
+        tarjan(v), low[u] = min(low[u], low[v]);
+      else if (!Idx[v])
+        low[u] = min(low[u], dfn[v]);
     }
-    if (low[u] == dfn[u]) {
-      ++SCCcnt;
+    if (dfn[u] == low[u]) {
+      ++cnt;
       while (true) {
         int x = stk[top--];
-        SCCidx[x] = SCCcnt, SCCval[SCCcnt] += val[x];
+        Idx[x] = cnt, W[cnt] += A[x];
         if (x == u) break;
       }
     }
   }
 
   void solve() {
-    clk = SCCcnt = 0;
+    clk = top = cnt = 0;
     for (int u = 1; u <= n; ++u)
-      if (!dfn[u]) tarjan(u, G1);
+      if (!dfn[u]) tarjan(u);
     for (int u = 1; u <= n; ++u)
-      for (int i = G1.head[u]; ~i; i = G1.edges[i].nxt) {
-        int SCCu = SCCidx[u], SCCv = SCCidx[G1.edges[i].to];
-        if (SCCu != SCCv) G2.AddEdge(SCCu, SCCv), ++deg[SCCv];
+      for (int i = G.head[u]; ~i; i = G.edges[i].nxt) {
+        int v = G.edges[i].to, su = Idx[u], sv = Idx[v];
+        if (su != sv)
+          D.AddEdge(su, sv), ++deg[sv];
       }
   }
 }
 
-namespace Topo {
-  using SCC::SCCcnt; using SCC::SCCval;
-  int f[MAXN];
-
-  int Toposort(const Graph& G) {
-    queue<int> Q;
-    for (int i = 1; i <= SCCcnt; ++i)
-      if (!deg[i]) Q.push(i), f[i] = SCCval[i];
-    while (!Q.empty()) {
-      int u = Q.front(); Q.pop();
-      for (int i = G.head[u]; ~i; i = G.edges[i].nxt) {
-        int v = G.edges[i].to;
-        f[v] = max(f[v], f[u] + SCCval[v]);
-        if (!(--deg[v])) Q.push(v);
-      }
+void Toposort() {
+  static int Q[MAXN], head, tail;
+  Q[head = 1] = tail = 0;
+  for (int u = 1; u <= SCC::cnt; ++u)
+    if (deg[u] == 0) Q[++tail] = u, f[u] = W[u];
+  while (head <= tail) {
+    int u = Q[head++];
+    for (int v, i = D.head[u]; ~i; i = D.edges[i].nxt) {
+      v = D.edges[i].to, f[v] = max(f[v], f[u] + W[v]);
+      if (!(--deg[v])) Q[++tail] = v;
     }
-    int ret = 0;
-    for (int i = 1; i <= SCCcnt; ++i) ret = max(ret, f[i]);
-    return ret;
   }
 }
 
@@ -105,12 +97,15 @@ int main() {
   freopen("input.in", "r", stdin);
 #endif
   read(n), read(m);
-  for (int i = 1; i <= n; ++i) read(val[i]);
+  for (int i = 1; i <= n; ++i) read(A[i]);
   for (int u, v, i = 1; i <= m; ++i)
-    read(u), read(v), G1.AddEdge(u, v);
+    read(u), read(v), G.AddEdge(u, v);
 
-  SCC::solve();
+  SCC::solve(), Toposort();
+  int ans = -INF;
+  for (int u = 1; u <= SCC::cnt; ++u)
+    ans = max(ans, f[u]);
 
-  printf("%d\n", Topo::Toposort(G2));
+  printf("%d\n", ans);
   return 0;
 }

@@ -22,28 +22,26 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1e5 + 5;
+const int MAXN = 1e5 + 5, LOG = 18;
 
-int n, m;
+int n, q;
 int A[MAXN];
 
 namespace ST {
-  const int LOG = 21;
+  int lg2[MAXN], Mx[LOG][MAXN];
 
-  int MaxA[LOG][MAXN], lg2[MAXN];
-
-  void init() {
-    for (int i = 1; i <= n; ++i) MaxA[0][i] = A[i];
-    for (int j = 1; j < LOG; ++j)
+  void build() {
+    for (int i = 1; i <= n; ++i) Mx[0][i] = A[i];
+    for (int j = 1; (1 << j) <= n; ++j)
       for (int i = 1; i + (1 << j) - 1 <= n; ++i)
-        MaxA[j][i] = max(MaxA[j - 1][i], MaxA[j - 1][i + (1 << (j-1))]);
+        Mx[j][i] = max(Mx[j - 1][i], Mx[j - 1][i + (1 << (j-1))]);
     lg2[1] = 0;
-    for (int i = 2; i <= n; ++i) lg2[i] = lg2[i/2] + 1;
+    for (int i = 2; i <= n; ++i) lg2[i] = lg2[i / 2] + 1;
   }
 
-  int Qry(int L, int R) {
+  inline int Qry(int L, int R) {
     int k = lg2[R - L + 1];
-    return max(MaxA[k][L], MaxA[k][R - (1 << k) + 1]);
+    return max(Mx[k][L], Mx[k][R - (1 << k) + 1]);
   }
 }
 
@@ -51,14 +49,11 @@ int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
-  read(n); read(m);
+  read(n), read(q);
   for (int i = 1; i <= n; ++i) read(A[i]);
 
-  ST::init();
-
-  for (int L, R; m; --m) {
-    read(L), read(R);
-    printf("%d\n", ST::Qry(L, R));
-  }
+  ST::build();
+  for (int L, R; q; --q)
+    read(L), read(R), printf("%d\n", ST::Qry(L, R));
   return 0;
 }
