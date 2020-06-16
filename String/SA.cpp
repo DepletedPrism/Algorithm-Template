@@ -48,12 +48,11 @@ int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
-  // input
   scanf("%s", S + 1);
-  // solve
+
   n = (int) strlen(S + 1);
   SA::build('z');
-  // output
+
   for (int i = 1; i <= n; ++i)
     printf("%d%c", SA::sa[i], " \n"[i == n]);
   for (int i = 2; i <= n; ++i)

@@ -64,9 +64,9 @@ namespace HLD {
   inline void solve() { rt = 1, dfs1(rt, 0), dfs2(rt, rt); }
 }
 
+#define lc (nd << 1)
+#define rc (nd << 1 | 1)
 namespace SGT {
-#define lc (nd<<1)
-#define rc (nd<<1|1)
   LL datSum[MAXN << 2], tagAdd[MAXN << 2];
 
   inline void maintain(int nd) { datSum[nd] = datSum[lc] + datSum[rc]; }
@@ -108,9 +108,9 @@ namespace SGT {
     if (opR > Mid) ret += Qry(rc, Mid+1, R, opL, opR);
     return ret;
   }
+}
 #undef lc
 #undef rc
-}
 
 namespace HLD {
   inline int FndSon(int u, int v) {

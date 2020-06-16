@@ -1,4 +1,4 @@
-// LOJ #123
+// Luogu P3367
 // DeP
 #include <cctype>
 #include <cstdio>
@@ -22,17 +22,9 @@ namespace IO {
 }
 using IO::read;
 
-typedef long long LL;
-const int MAXN = 2e5 + 5, MAXM = 5e5 + 5;
+const int MAXN = 1e4 + 5, MAXM = 2e5 + 5;
 
-struct Edge {
-  int u, v, w;
-  bool operator < (const Edge& rhs) const {
-    return w < rhs.w;
-  }
-} E[MAXM];
-
-int n, m;
+int n, q;
 
 namespace DSU {
   int fa[MAXN], size[MAXN];
@@ -44,24 +36,10 @@ namespace DSU {
   int Fnd(int u) {
     return (fa[u] == u)? u: fa[u] = Fnd(fa[u]);
   }
-  inline void Jon(int fu, int fv) {
+  inline void join(int fu, int fv) {
+    if (fu == fv) return;
     if (size[fu] < size[fv]) swap(fu, fv);
     fa[fv] = fu, size[fu] += size[fv];
-  }
-}
-
-namespace MST {
-  LL Kruskal() {
-    LL ret = 0;
-    DSU::init(), sort(E + 1, E + m + 1);
-    for (int cnt = 0, i = 1; i <= m; ++i) {
-      int fu = DSU::Fnd(E[i].u), fv = DSU::Fnd(E[i].v);
-      if (fu != fv) {
-        ret += E[i].w, DSU::Jon(fu, fv);
-        if (++cnt == n - 1) return ret;
-      }
-    }
-    return 0;
   }
 }
 
@@ -69,12 +47,17 @@ int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
-  read(n), read(m);
-  for (int u, v, w, i = 1; i <= m; ++i) {
-    read(u), read(v), read(w);
-    E[i] = (Edge){ u, v, w };
-  }
+  read(n), read(q);
 
-  printf("%lld\n", MST::Kruskal());
+  DSU::init();
+  for (int opt, u, v; q; --q) {
+    read(opt), read(u), read(v);
+    int fu = DSU::Fnd(u), fv = DSU::Fnd(v);
+    switch (opt) {
+      case 1: DSU::join(fu, fv); break;
+      case 2: puts((fu == fv)? "Y": "N"); break;
+      default: fprintf(stderr, "ERR\n");
+    }
+  }
   return 0;
 }

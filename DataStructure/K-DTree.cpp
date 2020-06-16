@@ -66,7 +66,7 @@ namespace KDT {
       nth_element(g+L, g+Mid, g+R+1, cmp1), d[g[Mid]] = 1;
     else
       nth_element(g+L, g+Mid, g+R+1, cmp2), d[g[Mid]] = 2;
-    ch[0][g[Mid]] = build(L, Mid-1), ch[1][g[Mid]] = build(Mid+1, R);
+    ch[0][g[Mid]] = build(L, Mid-1), ch[1][g[Mid]] = build(Mid + 1, R);
     return maintain(g[Mid]), g[Mid];
   }
 

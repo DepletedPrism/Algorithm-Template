@@ -1,81 +1,70 @@
 // Luogu P5491
 // DeP
 #include <ctime>
-#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
 using namespace std;
 
-namespace IO {
-    const int MAXSIZE = 1 << 18 | 1;
-    char buf[MAXSIZE], *p1, *p2;
-
-    inline int Gc() { return p1 == p2 && (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++; }
-    template<typename T> inline void read(T& x) {
-        x = 0; int f = 0, ch = Gc();
-        while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-        while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-        if (f) x = -x;
-    }
-}
-using IO::read;
-
 typedef long long LL;
-int Mod, i2;
 
-struct Complex {
-    LL x, y;
+int fpow(int pw, int b, int p) {
+  int ret = 1;
+  while (b > 0) {
+    if (b & 1) ret = (LL) ret * pw % p;
+    pw = (LL) pw * pw % p, b >>= 1;
+  }
+  return ret;
+}
+
+namespace Cipolla {
+  struct Complex {
+    int x, y;
     Complex(int _x, int _y): x(_x), y(_y) { }
-    Complex operator * (const Complex& rhs) const {
-        return Complex((1LL * x * rhs.x % Mod + 1LL * i2 * y % Mod * rhs.y % Mod) % Mod,
-                (1LL * x * rhs.y % Mod + 1LL * y * rhs.x % Mod) % Mod);
-    }
-};
+  };
 
-Complex fpow(Complex base, int b) {
-    Complex ret = Complex(1, 0);
+  inline Complex Mul(Complex A, Complex B, int i2, int p) {
+    return Complex(((LL) A.x * B.x + (LL) i2 * A.y % p * B.y % p) % p,
+        ((LL) A.x * B.y + (LL) A.y * B.x) % p);
+  }
+  Complex Cfpow(Complex pw, int b, int i2, int p) {
+    Complex ret(1, 0);
     while (b > 0) {
-        if (b & 1) ret = ret * base;
-        base = base * base, b >>= 1;
+      if (b & 1) ret = Mul(ret, pw, i2, p);
+      pw = Mul(pw, pw, i2, p), b >>= 1;
     }
     return ret;
-}
+  }
 
-int fpow(int base, int b, int m) {
-    int ret = 1;
-    while (b > 0) {
-        if (b & 1) ret = 1LL * ret * base % m;
-        base = 1LL * base * base % m, b >>= 1;
+  inline int Sqrt(int n, int p) {
+    srand(time(nullptr));
+    if (!n) return 0;
+    if (fpow(n, (p - 1) / 2, p) != 1) return -1;
+    while (true) {
+      int a = rand() % p, i2 = (((LL) a * a - n) % p + p) % p;
+      if (!a || fpow(i2, (p - 1) / 2, p) == 1) continue;
+      int x = Cfpow(Complex(a, 1), (p + 1) / 2, i2, p).x;
+      return min(x, p - x);
     }
-    return ret % m;
+    return -1;
+  }
 }
 
-inline bool EulerCriterion(int n, int p) { return fpow(n, (p-1) / 2, p) == 1; }
-
-inline int Cipolla(int n, int p, int* x) {
-    if (!n) return x[0] = 0, 1;
-    if (!EulerCriterion(n, p)) return 0;
-    Mod = p;
-    LL a = rand() % p;
-    while (!a || EulerCriterion((a * a - n + p) % p, p)) a = rand() % p;
-    i2 = (a * a - n + p) % p;
-    x[0] = fpow(Complex(a, 1), (p + 1) / 2).x, x[1] = p - x[0];
-    if (x[0] > x[1]) swap(x[0], x[1]);
-    return 1 + (x[0] != x[1]);
-}
-
-signed main() {
+int main() {
 #ifndef ONLINE_JUDGE
-    freopen("input.in", "r", stdin);
+  freopen("input.in", "r", stdin);
 #endif
-    srand( time(nullptr) );
-    int Ti, n, p, x[2]; read(Ti);
-    while (Ti--) {
-        read(n), read(p);
-        int cnt = Cipolla(n, p, x);
-        if (!cnt) puts("Hola!");
-        for (int i = 0; i < cnt; ++i) printf("%d%c", x[i], " \n"[i==cnt-1]);
-    }
-    return 0;
+  int Ti;
+  scanf("%d", &Ti);
+  for (int n, p; Ti; --Ti) {
+    scanf("%d%d", &n, &p);
+    int x = Cipolla::Sqrt(n, p);
+    if (x == -1)
+      puts("Hola!");
+    else if (x == p - x || x == 0)
+      printf("%d\n", x);
+    else
+      printf("%d %d\n", x, p - x);
+  }
+  return 0;
 }

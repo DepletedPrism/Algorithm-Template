@@ -56,8 +56,8 @@ namespace BIT {
 
 void CDQ(const int& L, const int& R) {
   if (L >= R) return;
-  int Mid = (L + R) / 2, p = L, q = Mid+1;
-  CDQ(L, Mid), CDQ(Mid+1, R);
+  int Mid = (L + R) / 2, p = L, q = Mid + 1;
+  CDQ(L, Mid), CDQ(Mid + 1, R);
   for (int i = L; i <= R; ++i) {
     if ((p <= Mid && A[p].b <= A[q].b) || q > R)
       BIT::Mdy(A[p].c, A[p].w), tmp[i] = A[p++];
@@ -79,7 +79,7 @@ int main() {
   sort(A+1, A+1+n);
   for (int i = 1; i <= n; ++i) {
     int j = i;
-    while (j < n && A[i] == A[j+1]) ++j;
+    while (j < n && A[i] == A[j + 1]) ++j;
     A[++nA] = A[i], A[nA].w = j - i + 1;
     i = j;
   }

@@ -92,7 +92,8 @@ int main() {
     TwoSAT::AddClause(u, a, v, b);
   }
 
-  if (!TwoSAT::solve()) puts("IMPOSSIBLE");
+  if (!TwoSAT::solve())
+    puts("IMPOSSIBLE");
   else {
     puts("POSSIBLE");
     for (int i = 1; i <= n; ++i)
