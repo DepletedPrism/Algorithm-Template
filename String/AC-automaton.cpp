@@ -1,67 +1,61 @@
 // Luogu P5357
 // DeP
-#include <queue>
 #include <cstdio>
+#include <vector>
 #include <cstring>
 using namespace std;
 
-const int MAXN = 2e5 + 5, MAXL = 2e6 + 5;
+const int MAXN = 2e5 + 5, MAXS = 2e6 + 5, SIGMA = 26;
 
 int n;
-char str[MAXL];
-int subsize[MAXN];
+char str[MAXS];
 
-namespace Graph {
-  struct Edge { int nxt, to; } edges[MAXN];
-  int head[MAXN], eidx;
+int siz[MAXN];
+vector<int> G[MAXN];
 
-  inline void init() { memset(head, -1, sizeof head), eidx = 1; }
-  inline void AddEdge(int from, int to) {
-    edges[++eidx] = (Edge){ head[from], to }, head[from] = eidx;
-  }
-
-  void dfs(int u) {
-    for (int v, i = head[u]; ~i; i = edges[i].nxt)
-      dfs(v = edges[i].to), subsize[u] += subsize[v];
-  }
+void dfs(int u) {
+  for (const int& v: G[u])
+    dfs(v), siz[u] += siz[v];
 }
 
 namespace AC {
-  const int SIGMA = 26;
-  int fail[MAXN], ch[SIGMA][MAXN], match[MAXN], nidx;
+  int ch[MAXN][SIGMA], fail[MAXN], nidx;
+  int match[MAXN];
 
-  inline int idx(char c) { return c - 'a'; }
+  inline void init() { nidx = 1; }
 
-  void insert(char* S, int v) {
-    int u = 0, len = strlen(S);
-    for (int i = 0; i < len; ++i) {
-      int c = idx(S[i]);
-      if (!ch[c][u]) ch[c][u] = ++nidx;
-      u = ch[c][u];
+  void Ins(char* s, const int& lgt, int idx) {
+    int u = 1;
+    for (int i = 1; i <= lgt; ++i) {
+      int c = s[i] - 'a';
+      if (!ch[u][c]) ch[u][c] = ++nidx;
+      u = ch[u][c];
     }
-    match[v] = u;
+    match[idx] = u;
   }
 
-  void getFail() {
-    queue<int> Q;
-    fail[0] = 0;
+  void getfail() {
+    static int Q[MAXN], head, tail;
+    Q[head = 1] = tail = 0;
+    fail[1] = 1;
     for (int c = 0; c < SIGMA; ++c) {
-      int v = ch[c][0];
-      if (v) Q.push(v), fail[v] = 0;
+      int& v = ch[1][c];
+      if (v) Q[++tail] = v, fail[v] = 1; else v = 1;
     }
-    while (!Q.empty()) {
-      int u = Q.front(); Q.pop();
+    while (head <= tail) {
+      int u = Q[head++];
       for (int c = 0; c < SIGMA; ++c) {
-        int v = ch[c][u];
-        if (v) Q.push(v), fail[v] = ch[c][fail[u]];
-        else ch[c][u] = ch[c][fail[u]];
+        int& v = ch[u][c];
+        if (v) Q[++tail] = v, fail[v] = ch[fail[u]][c];
+        else v = ch[fail[u]][c];
       }
     }
   }
 
-  void Qry(char* T) {
-    int len = strlen(T), u = 0;
-    for (int i = 0; i < len; ++i) u = ch[idx(T[i])][u], ++subsize[u];
+  void Mrk(char* s, const int& lgt) {
+    int u = 1;
+    for (int c, i = 1; i <= lgt; ++i)
+      c = s[i] - 'a', u = ch[u][c], ++siz[u];
   }
 }
 
@@ -69,18 +63,20 @@ int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
-  Graph::init();
+  AC::init();
 
   scanf("%d", &n);
-  for (int i = 1; i <= n; ++i) scanf("%s", str), AC::insert(str, i);
+  for (int i = 1; i <= n; ++i)
+    scanf("%s", str + 1), AC::Ins(str, strlen(str + 1), i);
+  scanf("%s", str + 1);
 
-  AC::getFail();
-  scanf("%s", str), AC::Qry(str);
+  AC::getfail();
+  AC::Mrk(str, strlen(str + 1));
+  for (int u = 2; u <= AC::nidx; ++u)
+    G[AC::fail[u]].push_back(u);
+  dfs(1);
 
-  for (int i = 1; i <= AC::nidx; ++i)
-    Graph::AddEdge(AC::fail[i], i);
-  Graph::dfs(0);
-
-  for (int i = 1; i <= n; ++i) printf("%d\n", subsize[AC::match[i]]);
+  for (int i = 1; i <= n; ++i)
+    printf("%d\n", siz[AC::match[i]]);
   return 0;
 }

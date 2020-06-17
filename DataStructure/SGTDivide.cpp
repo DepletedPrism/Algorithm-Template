@@ -11,7 +11,10 @@ namespace IO {
   const int MAXSIZE = 1 << 18 | 1;
   char buf[MAXSIZE], *p1, *p2;
 
-  inline int Gc() { return p1 == p2 && (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++; }
+  inline int Gc() {
+    return p1 == p2 &&
+      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
+  }
   template<typename T> inline void read(T& x) {
     x = 0; int f = 0, ch = Gc();
     while (!isdigit(ch)) f |= ch == '-', ch = Gc();
@@ -21,7 +24,7 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1e5+5;
+const int MAXN = 1e5 + 5;
 
 struct Ask {
   int L, R, tL, tR, x;
@@ -29,7 +32,9 @@ struct Ask {
 
 struct Modify {
   int Time, s, v;
-  bool operator < (const Modify& rhs) const { return s < rhs.s; }
+  bool operator < (const Modify& rhs) const {
+    return s < rhs.s;
+  }
 } M[MAXN], tmpL[MAXN], tmpR[MAXN], none;
 
 int n, m, nq;
@@ -40,9 +45,11 @@ namespace Trie {
   int ch[2][MAXN], size[MAXN], nidx;
 
   inline void init() { nidx = 1, size[nidx] = ch[0][nidx] = ch[1][nidx] = 0; }
-  inline int newnode() { return ++nidx, size[nidx] = ch[0][nidx] = ch[1][nidx] = 0, nidx; }
+  inline int newnode() {
+    return ++nidx, size[nidx] = ch[0][nidx] = ch[1][nidx] = 0, nidx;
+  }
 
-  inline void insert(int nd, int lst, const int& val) {
+  inline void Ins(int nd, int lst, const int& val) {
     for (int i = 17; i >= 0; --i) {
       int c = (val >> i) & 1;
       size[nd] = size[lst] + 1;
@@ -65,9 +72,9 @@ namespace Trie {
   }
 }
 
+#define lc (nd << 1)
+#define rc (nd << 1 | 1)
 namespace SGT {
-#define lc (nd<<1)
-#define rc (nd<<1|1)
   vector<int> dat[MAXN << 2];
 
   void Mdy(int nd, int L, int R, const int& opL, const int& opR, const int& idx) {
@@ -80,20 +87,20 @@ namespace SGT {
 
   void divide(int nd, int L, int R, int opL, int opR) {
     if (L > R || opL > opR) return;
-    // calculate nd
+
     Trie::init();
     int t = 0;
     for (int i = opL; i <= opR; ++i)
-      ++t, Trie::insert(rt[t] = Trie::newnode(), rt[t-1], M[i].v);
+      ++t, Trie::Ins(rt[t] = Trie::newnode(), rt[t-1], M[i].v);
     for (size_t i = 0; i < dat[nd].size(); ++i) {
       const int& idx = dat[nd][i];
       none.s = Q[idx].L - 1;
-      int rtL = upper_bound(M+opL, M+opR+1, none) - M - opL;
+      int rtL = upper_bound(M + opL, M + opR + 1, none) - M - opL;
       none.s = Q[idx].R;
-      int rtR = upper_bound(M+opL, M+opR+1, none) - M - opL;
+      int rtR = upper_bound(M + opL, M + opR + 1, none) - M - opL;
       Ans[idx] = max(Ans[idx], Trie::Qry(rt[rtL], rt[rtR], Q[idx].x));
     }
-    // merge & divide
+
     int Mid = (L + R) / 2, p = 0, q = 0;
     for (int i = opL; i <= opR; ++i) {
       if (M[i].Time <= Mid) tmpL[++p] = M[i];
@@ -118,7 +125,7 @@ int main() {
   for (int i = 1; i <= n; ++i) read(A[i]);
 
   for (int i = 1; i <= n; ++i)
-    Trie::insert(rt[i] = Trie::newnode(), rt[i-1], A[i]);
+    Trie::Ins(rt[i] = Trie::newnode(), rt[i-1], A[i]);
   int Time = 0;
   for (int i = 1; i <= m; ++i) {
     static int opt, L, R, x, d, s, v;
@@ -131,11 +138,12 @@ int main() {
       case 1:
         read(L), read(R), read(x), read(d);
         Ans[++nq] = Trie::Qry(rt[L-1], rt[R], x);
-        Q[nq] = (Ask){ L, R, max(1, Time-d+1), Time, x };
+        Q[nq] = (Ask){ L, R, max(1, Time - d + 1), Time, x };
         break;
       default: fprintf(stderr, "GG\n");
     }
   }
+
   sort(M+1, M+1+Time);
   for (int i = 1; i <= nq; ++i)
     SGT::Mdy(1, 1, Time, Q[i].tL, Q[i].tR, i);

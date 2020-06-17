@@ -1,16 +1,14 @@
-// Luogu P2571
+// Luogu P1337
 // DeP
+#pragma GCC optimize("inline", "Ofast")
 #include <ctime>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <algorithm>
 using namespace std;
 
-const double TIME_LIMIT = 0.95, DELTA = 0.93, GG = 0.95;
-
 namespace Geo {
-  const double EPS = 1e-9, INFD = 1e18;
+  const double EPS = 1e-5;
 
   inline int dcmp(const double& p) {
     return (fabs(p) < EPS)? 0: (p < 0? -1: 1);
@@ -19,51 +17,41 @@ namespace Geo {
   struct Vector {
     double x, y;
     Vector(double _x = 0.0, double _y = 0.0): x(_x), y(_y) { }
-
-    Vector operator + (const Vector& rhs) const { return Vector(x + rhs.x, y + rhs.y); }
-    Vector operator - (const Vector& rhs) const { return Vector(x - rhs.x, y - rhs.y); }
+    Vector operator + (const Vector& rhs) const {
+      return Vector(x + rhs.x, y + rhs.y);
+    }
+    Vector operator - (const Vector& rhs) const {
+      return Vector(x - rhs.x, y - rhs.y);
+    }
     Vector operator * (const double& p) const { return Vector(x * p, y * p); }
-    Vector operator / (const double& p) const { return Vector(x / p, y / p); }
   };
   typedef Vector Point;
 
-  inline double Dot(const Vector& A, const Vector& B) { return A.x * B.x + A.y * B.y; }
+  inline double Dot(const Vector& A, const Vector& B) {
+    return A.x * B.x + A.y * B.y;
+  }
   inline double Length(const Vector& A) { return sqrt(Dot(A, A)); }
 }
 using namespace Geo;
 
-inline void read(Point& x) { scanf("%lf%lf", &x.x, &x.y); }
+const int MAXN = 1e3 + 5;
 
-Point A, B, C, D;
-double Limit1, Limit2;
-double p, q, r, ans, a1, a2;
+int n;
+int W[MAXN];
+Point P[MAXN];
 
-inline double metaphysics() { return (double(rand()) / RAND_MAX) * 2.0 - 1.0; }
-
-inline double update(double t1, double t2) {
-  static const Vector v1 = (B - A) / (Length(B-A) + EPS), v2 = (C - D) / (Length(C-D) + EPS);
-  Point E = A + v1 * (t1 * p), F = D + v2 * (t2 * q);
-  double ret = t1 + t2 + Length(E - F) / r;
-  if (ret < ans) ans = ret, a1 = t1, a2 = t2;
-  return ret;
+inline double metaphysics() {
+  return (double) rand() / RAND_MAX * 2.0 - 1.0;
 }
 
-inline double fix(const double& a, const double& mod) {
-  return a - floor(a / mod) * mod;
+inline double calc(const Point& p) {
+  double s = 0.0;
+  for (int i = 1; i <= n; ++i)
+    s += Length(P[i] - p) * W[i];
+  return s;
 }
 
-void SA() {
-  double T = 3422.0, n1 = a1, n2 = a2;
-  double now = ans;
-  while (T > EPS) {
-    double nxt1 = fix(n1 + T * metaphysics() + Limit1, Limit1);
-    double nxt2 = fix(n2 + T * metaphysics() + Limit2, Limit2);
-    if (clock() > GG * CLOCKS_PER_SEC) printf("%.2lf\n", ans), exit(0);
-    double delta = update(nxt1, nxt2) - now;
-    if (exp(-delta / T) > rand()) n1 = nxt1, n2 = nxt2;
-    T *= DELTA;
-  }
-}
+const double TIME_LIMIT = 0.98, DELTA = 0.995;
 
 int main() {
 #ifndef ONLINE_JUDGE
@@ -71,13 +59,29 @@ int main() {
 #endif
   srand(time(nullptr));
 
-  read(A), read(B), read(C), read(D);
-  scanf("%lf%lf%lf", &p, &q, &r);
+  scanf("%d", &n);
+  for (int x, y, i = 1; i <= n; ++i)
+    scanf("%d%d%d", &x, &y, W + i), P[i] = Point(x, y);
 
-  ans = Length(A - D) / r, a1 = 0.0, a2 = 0.0;
-  Limit1 = (Length(A - B) + EPS) / p, Limit2 = (Length(C - D) + EPS) / q;
-  while (clock() < TIME_LIMIT * CLOCKS_PER_SEC) SA();
+  Point ans(0.0, 0.0);
+  for (int i = 1; i <= n; ++i)
+    ans.x += P[i].x, ans.y += P[i].y;
+  ans.x /= n, ans.y /= n;
 
-  printf("%.2lf\n", ans);
+  double as = calc(ans);
+  Point lst = ans;
+  while (clock() < TIME_LIMIT * CLOCKS_PER_SEC) {
+    double ls = calc(lst);
+    for (double T = 6376.0; T > 1e-4; T *= DELTA) {
+      double dx = metaphysics(), dy = metaphysics();
+      Point np = lst + Vector(dx, dy) * T;
+      double ns = calc(np);
+      if (ls > ns || (double) rand() / RAND_MAX < exp((ls - ns) / T))
+        lst = np, ls = ns;
+      if (as > ls) ans = lst, as = ls;
+      while (clock() > TIME_LIMIT * CLOCKS_PER_SEC)
+        return printf("%.3lf %.3f\n", ans.x, ans.y), 0;
+    }
+  }
   return 0;
 }

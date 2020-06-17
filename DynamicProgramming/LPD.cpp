@@ -30,7 +30,8 @@ namespace LPD {
     for (int v, i = head[u]; ~i; i = edges[i].nxt) {
       if ((v = edges[i].to) == fa) continue;
       dfs1(v, u);
-      if (son[u] == -1 || d[v] > d[son[u]]) son[u] = v, d[u] = d[v] + 1;
+      if (son[u] == -1 || d[v] > d[son[u]])
+        son[u] = v, d[u] = d[v] + 1;
     }
   }
 

@@ -40,8 +40,8 @@ namespace Treap {
 
   inline void maintain(int nd) {
     size[nd] = 1;
-    if (ch[0][nd]) size[nd] += size[ch[0][nd]];
-    if (ch[1][nd]) size[nd] += size[ch[1][nd]];
+    if (ch[0][nd] > 0) size[nd] += size[ch[0][nd]];
+    if (ch[1][nd] > 0) size[nd] += size[ch[1][nd]];
   }
 
   void split(int nd, int k, int& x, int& y) {
@@ -64,7 +64,7 @@ namespace Treap {
     static int x, y;
     split(rt, v, x, y), rt = merge(merge(x, newnode(v)), y);
   }
-  inline void Rmv(int& rt, const int& v) {
+  inline void Del(int& rt, const int& v) {
     static int x, y, z;
     split(rt, v, x, z), split(x, v-1, x, y);
     y = merge(ch[0][y], ch[1][y]), rt = merge(merge(x, y), z);
@@ -97,9 +97,9 @@ namespace Treap {
   }
 }
 
+#define lc (nd << 1)
+#define rc (nd << 1 | 1)
 namespace SGT {
-#define lc (nd<<1)
-#define rc (nd<<1|1)
   int rt[MAXN << 2];
 
   void build(int nd, int L, int R) {
@@ -110,7 +110,7 @@ namespace SGT {
   }
 
   void Mdy(int nd, int L, int R, const int& pos, const int& val) {
-    Treap::Rmv(rt[nd], A[pos]), Treap::Ins(rt[nd], val);
+    Treap::Del(rt[nd], A[pos]), Treap::Ins(rt[nd], val);
     if (L == R) return;
     int Mid = (L + R) / 2;
     if (pos <= Mid) Mdy(lc, L, Mid, pos, val);
@@ -150,19 +150,19 @@ namespace SGT {
     if (opR > Mid) ret = min(ret, Suf(rc, Mid+1, R, opL, opR, val));
     return ret;
   }
+}
 #undef lc
 #undef rc
-}
 
 int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
   srand(time(nullptr));
-  // input
+
   read(n), read(m);
   for (int i = 1; i <= n; ++i) read(A[i]);
-  // solve
+
   SGT::build(1, 1, n);
   while (m--) {
     static int opt, L, R, x;

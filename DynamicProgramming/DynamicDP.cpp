@@ -83,9 +83,9 @@ namespace HLD {
   inline void solve(int rt = 1) { dfs1(rt, 0), dfs2(rt, rt); }
 }
 
-namespace SGT {
 #define lc (nd << 1)
 #define rc (nd << 1 | 1)
+namespace SGT {
   Matrix dat[MAXN << 2];
 
   inline void maintain(const int& nd) { dat[nd] = dat[lc] * dat[rc]; }
@@ -111,9 +111,9 @@ namespace SGT {
     if (opL > Mid) return Qry(rc, Mid+1, R, opL, opR);
     return Qry(lc, L, Mid, opL, opR) * Qry(rc, Mid+1, R, opL, opR);
   }
+}
 #undef lc
 #undef rc
-}
 
 namespace HLD {
   inline Matrix Qry(const int& u) { return SGT::Qry(1, 1, n, dfn[u], Ed[u]); }

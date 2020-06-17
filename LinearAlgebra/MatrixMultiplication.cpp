@@ -23,7 +23,7 @@ namespace IO {
 using IO::read;
 
 typedef long long LL;
-const int MAXN = 5e2 + 5, P = 1e9+7;
+const int MAXN = 5e2 + 5, P = 1e9 + 7;
 
 int n, p, m;
 

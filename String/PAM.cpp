@@ -53,7 +53,7 @@ namespace PAM {
 
 int main() {
 #ifndef ONLINE_JUDGE
-  freopen("2.in", "r", stdin);
+  freopen("input.in", "r", stdin);
 #endif
   PAM::init();
   scanf("%d%s", &n, S+1);

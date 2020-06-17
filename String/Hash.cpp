@@ -1,67 +1,56 @@
 // Luogu P3370
 // DeP
-#include <set>
-#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
 using namespace std;
 
-namespace IO {
-  const int MAXSIZE = 1 << 20;
-  char buf[MAXSIZE], *p1, *p2;
-
-  inline int Gc() { return getchar(); }
-  template<class T> void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) { f |= ch == '-'; ch = Gc(); }
-    while (isdigit(ch)) { x = x * 10 + ch - '0'; ch = Gc(); }
-    if (f) x = -x;
-  }
-}
-using IO::read;
-
-const int MAXN = 10005;
-const int MOD1 = 1e9+7, MOD2 = 998244353, BASE = 19260817;
+typedef long long LL;
+const int MAXN = 1e4 + 5, MAXM = 1.5e3 + 5;
 
 struct Hash {
-  int H1, H2;
-
-  Hash() { H1 = H2 = 0; }
-  Hash(int x, int y): H1(x), H2(y) { }
-
-  bool operator < (const Hash& rhs) const {
-    return H1 < rhs.H1 || (H1 == rhs.H1 && H2 < rhs.H2);
+  static const int B = 19260817, P1 = 1e9 + 9, P2 = 998244353;
+  int h1, h2;
+  Hash() { h1 = h2 = 0; }
+  Hash(int _h): h1(_h), h2(_h) { }
+  Hash(int _h1, int _h2): h1(_h1), h2(_h2) { }
+  Hash operator + (const Hash& rhs) const {
+    return Hash((h1 + rhs.h1) % P1, (h2 + rhs.h2) % P2);
   }
-
-  inline void insert(int ch) {
-    H1 = (1LL * H1 * BASE + ch) % MOD1;
-    H2 = (1LL * H2 * BASE + ch) % MOD2;
+  Hash operator - (const Hash& rhs) const {
+    return Hash((h1 - rhs.h1 + P1) % P1, (h2 - rhs.h2 + P2) % P2);
+  }
+  Hash operator * (const Hash& rhs) const {
+    return Hash((LL) h1 * rhs.h1 % P1, (LL) h2 * rhs.h2 % P2);
+  }
+  bool operator < (const Hash& rhs) const {
+    return h1 < rhs.h1 || (h1 == rhs.h1 && h2 < rhs.h2);
+  }
+  bool operator == (const Hash& rhs) const {
+    return !(*this < rhs) && !(rhs < *this);
   }
 };
 
 int n;
-char str[MAXN];
-set<Hash> C;
+char str[MAXM];
 
-Hash solve(char* S) {
-  Hash ret;
-  int m = strlen(S);
-  for (int i = 0; i < m; ++i) ret.insert(S[i]);
-  return ret;
-}
+Hash h[MAXN];
 
 int main() {
 #ifndef ONLINE_JUDGE
-  freopen("testdata.in", "r", stdin);
+  freopen("input.in", "r", stdin);
 #endif
-  // input
-  read(n);
+  scanf("%d", &n);
   for (int i = 1; i <= n; ++i) {
-    scanf("%s", str);
-    C.insert(solve(str));
+    scanf("%s", str + 1);
+    int lgt = strlen(str + 1);
+    for (int j = 1; j <= lgt; ++j)
+      h[i] = h[i] * Hash::B + str[j];
   }
-  // output
-  printf("%lu", C.size());
+
+  sort(h + 1, h + 1 + n);
+  int ans = unique(h + 1, h + 1 + n) - h - 1;
+
+  printf("%d\n", ans);
   return 0;
 }

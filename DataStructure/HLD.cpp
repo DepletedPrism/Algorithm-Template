@@ -24,141 +24,110 @@ namespace IO {
 using IO::read;
 
 typedef long long LL;
-const int MAXN = 1e5+5;
+const int MAXN = 1e5 + 5;
 
-int n, m, rt;
+int n, q;
 int A[MAXN];
 
+int rt;
+int pre[MAXN], dfn[MAXN], rnk[MAXN], clk;
+
 namespace Graph {
-  struct Edge { int nxt, to; } edges[MAXN << 1];
+  struct Edge { int nxt, to; } edges[MAXN];
   int head[MAXN], eidx;
 
-  inline void init() { memset(head, -1, sizeof head); eidx = 1; }
+  inline void init() { memset(head, -1, sizeof head), eidx = 1; }
   inline void AddEdge(int from, int to) {
     edges[++eidx] = (Edge){ head[from], to }, head[from] = eidx;
   }
 }
 
-namespace HLD {
-  using namespace Graph;
-  int depth[MAXN], pre[MAXN], son[MAXN], size[MAXN];
-  int dfn[MAXN], rnk[MAXN], topfa[MAXN], dfs_clock;
+namespace BIT {
+  LL C1[MAXN], C2[MAXN];
 
-  void dfs1(int u, int fa) {
-    depth[u] = depth[fa] + 1;
-    son[u] = -1, pre[u] = fa, size[u] = 1;
-    for (int v, i = head[u]; ~i; i = edges[i].nxt) {
-      if ((v = edges[i].to) == fa) continue;
-      dfs1(v, u), size[u] += size[v];
-      if (son[u] == -1 || size[son[u]] < size[v]) son[u] = v;
-    }
+  inline int lowbit(int x) { return x & -x; }
+
+  inline void Mdy(int p, const LL& v) {
+    for (int i = p; i <= n; i += lowbit(i))
+      C1[i] += v, C2[i] += p * v;
   }
+  inline void Mdy(int L, int R, const LL& v) { Mdy(L, v), Mdy(R + 1, -v); }
 
-  void dfs2(int u, int top) {
-    topfa[u] = top, rnk[dfn[u] = ++dfs_clock] = u;
-    if (~son[u]) dfs2(son[u], top);
-    for (int v, i = head[u]; ~i; i = edges[i].nxt)
-      if ((v = edges[i].to) != pre[u] && v != son[u]) dfs2(v, v);
-  }
-
-  inline void solve() { rt = 1, dfs1(rt, 0), dfs2(rt, rt); }
-}
-
-#define lc (nd << 1)
-#define rc (nd << 1 | 1)
-namespace SGT {
-  LL datSum[MAXN << 2], tagAdd[MAXN << 2];
-
-  inline void maintain(int nd) { datSum[nd] = datSum[lc] + datSum[rc]; }
-
-  inline void pushdown(int nd, int L, int R) {
-    if (tagAdd[nd]) {
-      int Mid = (L + R) / 2;
-      datSum[lc] += tagAdd[nd] * (Mid-L+1), datSum[rc] += tagAdd[nd] * (R-Mid);
-      tagAdd[lc] += tagAdd[nd], tagAdd[rc] += tagAdd[nd];
-      tagAdd[nd] = 0;
-    }
-  }
-
-  void build(int nd, int L, int R) {
-    if (L == R)
-      return void( datSum[nd] = A[HLD::rnk[L]] );
-    int Mid = (L + R) / 2;
-    build(lc, L, Mid), build(rc, Mid+1, R);
-    maintain(nd);
-  }
-
-  void Mdy(int nd, int L, int R, int opL, int opR, const LL& val) {
-    if (opL <= L && R <= opR) {
-      datSum[nd] += val * (R-L+1), tagAdd[nd] += val; return;
-    }
-    pushdown(nd, L, R);
-    int Mid = (L + R) / 2;
-    if (opL <= Mid) Mdy(lc, L, Mid, opL, opR, val);
-    if (opR > Mid) Mdy(rc, Mid+1, R, opL, opR, val);
-    maintain(nd);
-  }
-
-  LL Qry(int nd, int L, int R, const int& opL, const int& opR) {
-    if (opL <= L && R <= opR) return datSum[nd];
+  inline LL Qry(int p) {
     LL ret = 0;
-    pushdown(nd, L, R);
-    int Mid = (L + R) / 2;
-    if (opL <= Mid) ret += Qry(lc, L, Mid, opL, opR);
-    if (opR > Mid) ret += Qry(rc, Mid+1, R, opL, opR);
+    for (int i = p; i; i -= lowbit(i))
+      ret += (p + 1) * C1[i] - C2[i];
     return ret;
   }
+  inline LL Qry(int L, int R) { return Qry(R) - Qry(L - 1); }
 }
-#undef lc
-#undef rc
 
 namespace HLD {
-  inline int FndSon(int u, int v) {
+  using namespace Graph;
+  int depth[MAXN], size[MAXN], son[MAXN], topfa[MAXN];
+
+  void dfs1(int u, int fa) {
+    depth[u] = depth[fa] + 1, son[u] = -1, size[u] = 1;
+    for (int v, i = head[u]; ~i; i = edges[i].nxt) {
+      dfs1(v = edges[i].to, u), size[u] += size[v];
+      if (son[u] == -1 || size[v] > size[son[u]]) son[u] = v;
+    }
+  }
+  void dfs2(int u, int top) {
+    topfa[u] = top, rnk[dfn[u] = ++clk] = u;
+    if (~son[u])
+      dfs2(son[u], top);
+    for (int v, i = head[u]; ~i; i = edges[i].nxt)
+      if ((v = edges[i].to) != son[u]) dfs2(v, v);
+  }
+
+  inline void solve(int u = 1) { dfs1(u, 0), dfs2(u, u); }
+
+  int Fndson(int u, const int& v) {
     while (topfa[u] != topfa[v]) {
-      u = topfa[u];
-      if (pre[u] == v) return u;
-      u = pre[u];
+      if (pre[topfa[u]] == v) return topfa[u];
+      u = pre[topfa[u]];
     }
     return son[v];
   }
 
-  void MdyChn(int u, int v, const LL& val) {
+  void MdyChn(int u, int v, const LL& d) {
     while (topfa[u] != topfa[v]) {
       if (depth[topfa[u]] < depth[topfa[v]]) swap(u, v);
-      SGT::Mdy(1, 1, n, dfn[topfa[u]], dfn[u], val);
+      BIT::Mdy(dfn[topfa[u]], dfn[u], d);
       u = pre[topfa[u]];
     }
-    if (dfn[u] > dfn[v]) swap(u, v);
-    SGT::Mdy(1, 1, n, dfn[u], dfn[v], val);
+    if (depth[u] > depth[v]) swap(u, v);
+    BIT::Mdy(dfn[u], dfn[v], d);
   }
-  void MdySub(int u, const LL& val) {
-    if (u == rt) return SGT::Mdy(1, 1, n, 1, n, val);
-    if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u] + size[u] - 1) {
-      int t = FndSon(rt, u);
-      SGT::Mdy(1, 1, n, 1, n, val);
-      return SGT::Mdy(1, 1, n, dfn[t], dfn[t] + size[t] - 1, -val);
-    }
-    return SGT::Mdy(1, 1, n, dfn[u], dfn[u] + size[u] - 1, val);
-  }
-
   LL QryChn(int u, int v) {
     LL ret = 0;
     while (topfa[u] != topfa[v]) {
       if (depth[topfa[u]] < depth[topfa[v]]) swap(u, v);
-      ret += SGT::Qry(1, 1, n, dfn[topfa[u]], dfn[u]);
+      ret += BIT::Qry(dfn[topfa[u]], dfn[u]);
       u = pre[topfa[u]];
     }
-    if (dfn[u] > dfn[v]) swap(u, v);
-    return ret + SGT::Qry(1, 1, n, dfn[u], dfn[v]);
+    if (depth[u] > depth[v]) swap(u, v);
+    return ret + BIT::Qry(dfn[u], dfn[v]);
+  }
+
+  void MdySub(int u, const LL& d) {
+    if (u == rt)
+      return BIT::Mdy(1, n, d);
+    if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u] + size[u] - 1) {
+      int t = Fndson(rt, u);
+      return BIT::Mdy(1, n, d), BIT::Mdy(dfn[t], dfn[t] + size[t] - 1, -d);
+    }
+    BIT::Mdy(dfn[u], dfn[u] + size[u] - 1, d);
   }
   LL QrySub(int u) {
-    if (u == rt) return SGT::Qry(1, 1, n, 1, n);
-    if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u]+size[u]-1) {
-      int t = FndSon(rt, u);
-      return SGT::Qry(1, 1, n, 1, n)
-        - SGT::Qry(1, 1, n, dfn[t], dfn[t] + size[t] - 1);
+    if (u == rt)
+      return BIT::Qry(1, n);
+    if (dfn[u] <= dfn[rt] && dfn[rt] <= dfn[u] + size[u] - 1) {
+      int t = Fndson(rt, u);
+      return BIT::Qry(1, n) - BIT::Qry(dfn[t], dfn[t] + size[t] - 1);
     }
-    return SGT::Qry(1, 1, n, dfn[u], dfn[u] + size[u] - 1);
+    return BIT::Qry(dfn[u], dfn[u] + size[u] - 1);
   }
 }
 
@@ -170,21 +139,21 @@ int main() {
 
   read(n);
   for (int i = 1; i <= n; ++i) read(A[i]);
-  for (int i = 2; i <= n; ++i) {
-    int fa; read(fa);
-    Graph::AddEdge(i, fa), Graph::AddEdge(fa, i);
-  }
+  for (int i = 2; i <= n; ++i) read(pre[i]);
 
-  HLD::solve(), SGT::build(1, 1, n);
+  for (int i = 2; i <= n; ++i)
+    Graph::AddEdge(pre[i], i);
+  HLD::solve(rt = 1);
+  for (int i = 1; i <= n; ++i)
+    BIT::Mdy(i, i, A[rnk[i]]);
 
-  read(m);
-  while (m--) {
-    int opt, u, v; LL K;
-    read(opt), read(u);
+  read(q);
+  for (int opt, u, v; q; --q) {
+    static LL d; read(opt), read(u);
     switch (opt) {
       case 1: rt = u; break;
-      case 2: read(v), read(K), HLD::MdyChn(u, v, K); break;
-      case 3: read(K), HLD::MdySub(u, K); break;
+      case 2: read(v), read(d), HLD::MdyChn(u, v, d); break;
+      case 3: read(d), HLD::MdySub(u, d); break;
       case 4: read(v), printf("%lld\n", HLD::QryChn(u, v)); break;
       case 5: printf("%lld\n", HLD::QrySub(u)); break;
       default: fprintf(stderr, "ERR\n");

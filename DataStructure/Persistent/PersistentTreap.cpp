@@ -1,5 +1,6 @@
 // Luogu P5055
 // DeP
+#include <ctime>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -30,11 +31,11 @@ int n, rt[MAXN];
 LL lastans;
 
 namespace Treap {
-  struct Node { int lc, rc, val, size, rnd; LL sum; bool res; } dat[MAXN << 6];
+  struct Node { int lc, rc, val, size; LL sum; bool res; } dat[MAXN << 6];
   int nidx;
 
   inline int newnode(const int& v) {
-    return dat[++nidx] = (Node){ 0, 0, v, 1, rand(), v, false }, nidx;
+    return dat[++nidx] = (Node){ 0, 0, v, 1, v, false }, nidx;
   }
   inline int copynode(int idx) { return dat[++nidx] = dat[idx], nidx; }
 
@@ -72,19 +73,20 @@ namespace Treap {
   }
   int merge(int x, int y) {
     if (!x || !y) return x + y;
-    if (dat[x].rnd < dat[y].rnd)
+    int s =  ((double) rand() / RAND_MAX) * (dat[x].size + dat[y].size);
+    if (s < dat[x].size)
       return pushdown(x), dat[x].rc = merge(dat[x].rc, y), maintain(x), x;
     return pushdown(y), dat[y].lc = merge(x, dat[y].lc), maintain(y), y;
   }
 
-  inline void Ins(int& root, int pos, int v) {
+  inline void Ins(int& root, int p, int v) {
     int x = 0, y = 0;
-    split(root, pos, x, y);
+    split(root, p, x, y);
     root = merge(merge(x, newnode(v)), y);
   }
-  inline void Del(int& root, int pos) {
+  inline void Del(int& root, int p) {
     int x = 0, y = 0, z = 0;
-    split(root, pos, x, z), split(x, pos - 1, x, y);
+    split(root, p, x, z), split(x, p - 1, x, y);
     root = merge(x, z);
   }
 

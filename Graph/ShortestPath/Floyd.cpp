@@ -12,18 +12,19 @@ int A[MAXM], G[MAXN][MAXN];
 
 int main() {
 #ifndef ONLINE_JUDGE
-    freopen("input.in", "r", stdin);
+  freopen("input.in", "r", stdin);
 #endif
-    scanf("%d%d", &n, &m);
-    for (int i = 1; i <= m; ++i) scanf("%d", A + i);
+  scanf("%d%d", &n, &m);
+  for (int i = 1; i <= m; ++i) scanf("%d", A + i);
+  for (int i = 1; i <= n; ++i)
+    for (int j = 1; j <= n; ++j) scanf("%d", G[i] + j);
+
+  for (int k = 1; k <= n; ++k)
     for (int i = 1; i <= n; ++i)
-        for (int j = 1; j <= n; ++j) scanf("%d", G[i] + j);
-    for (int k = 1; k <= n; ++k)
-        for (int i = 1; i <= n; ++i)
-            for (int j = 1; j <= n; ++j) G[i][j] = min(G[i][j], G[i][k] + G[k][j]);
-    // output
-    int ans = 0;
-    for (int i = 1; i < m; ++i) ans += G[A[i]][A[i + 1]];
-    printf("%d\n", ans);
-    return 0;
+      for (int j = 1; j <= n; ++j) G[i][j] = min(G[i][j], G[i][k] + G[k][j]);
+
+  int ans = 0;
+  for (int i = 1; i < m; ++i) ans += G[A[i]][A[i + 1]];
+  printf("%d\n", ans);
+  return 0;
 }
