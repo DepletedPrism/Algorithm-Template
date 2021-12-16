@@ -1,82 +1,75 @@
 // LOJ #101
-// DeP
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
+// Dinic
+#include <bits/stdc++.h>
 using namespace std;
 
-typedef long long LL;
-const int MAXV = 1e2 + 5, MAXE = 5e3 + 5;
-const LL INFLL = 0x3f3f3f3f3f3f3f3fLL;
+typedef long long LL; 
+const int MAXN = 1e2 + 5, MAXM = 5e3 + 5;
 
-int S, T;
+int n, m, S, T;
 
 namespace Graph {
-  struct Edge { int nxt, to; LL cap, flow; } edges[MAXE << 1];
-  int head[MAXV], eidx;
+  struct Edge {
+    int nxt, to, flow, cap;
+  } edges[MAXM << 1];
+  int head[MAXN], eidx;
 
-  inline void init() { memset(head, -1, sizeof head), eidx = 1; }
-  inline void AddEdge(int from, int to, LL c) {
-    edges[++eidx] = (Edge){ head[from], to, c, 0 }, head[from] = eidx;
-    edges[++eidx] = (Edge){ head[to], from, 0, 0 }, head[to] = eidx;
+  inline void init() {
+    memset(head, -1, sizeof head), eidx = 1;
+  }
+  inline void addEdge(int u, int v, int c) {
+    edges[++eidx] = (Edge){ head[u], v, 0, c }, head[u] = eidx;
+    edges[++eidx] = (Edge){ head[v], u, 0, 0 }, head[v] = eidx;
   }
 }
 
 namespace Dinic {
   using namespace Graph;
-  int cur[MAXV], depth[MAXV], vis[MAXV], Time;
+  int cur[MAXN], depth[MAXN], vis[MAXN], Time;
 
   bool BFS() {
-    static int Q[MAXV], h, t;
-    Q[h = t = 1] = S, depth[S] = 1, vis[S] = ++Time;
+    static int Q[MAXN], h, t;
+    depth[S] = 0, vis[S] = ++Time, Q[h = t = 1] = S;
     while (h <= t) {
       int u = Q[h++];
       for (int i = head[u]; ~i; i = edges[i].nxt) {
         const Edge& e = edges[i];
-        if (vis[e.to] != Time && e.cap > e.flow)
+        if (e.flow < e.cap && vis[e.to] != Time)
           vis[e.to] = Time, depth[e.to] = depth[u] + 1, Q[++t] = e.to;
       }
     }
     return vis[T] == Time;
   }
 
-  LL DFS(int u, LL a) {
+  LL DFS(int u, int a) {
     if (u == T || !a) return a;
-    LL f, flow = 0;
-    for (int& i = cur[u]; ~i; i = edges[i].nxt) {
+    LL flow = 0;
+    for (int f, &i = cur[u]; ~i; i = edges[i].nxt) {
       Edge& e = edges[i];
       if (depth[e.to] == depth[u] + 1 &&
           (f = DFS(e.to, min(a, e.cap - e.flow))) > 0) {
-        flow += f, a -= f, e.flow += f, edges[i ^ 1].flow -= f;
+        e.flow += f, edges[i ^ 1].flow -= f, flow += f, a -= f;
         if (!a) break;
       }
     }
     return flow;
   }
 
-  LL Maxflow() {
-    LL flow = 0;
+  LL maxflow() {
+    LL ret = 0;
     while (BFS())
-      memcpy(cur, head, sizeof cur), flow += DFS(S, INFLL);
-    return flow;
+      memcpy(cur, head, sizeof cur), ret += DFS(S, INT_MAX);
+    return ret;
   }
 }
 
-int n, m;
-
-int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
+int main(void) {
   Graph::init();
 
   scanf("%d%d%d%d", &n, &m, &S, &T);
-  for (int u, v, w, i = 1; i <= m; ++i) {
-    scanf("%d%d%d", &u, &v, &w);
-    Graph::AddEdge(u, v, w);
-  }
+  for (int u, v, c, i = 1; i <= m; ++i)
+    scanf("%d%d%d", &u, &v, &c), Graph::addEdge(u, v, c);
 
-  printf("%lld\n", Dinic::Maxflow());
+  printf("%lld\n", Dinic::maxflow());
   return 0;
 }

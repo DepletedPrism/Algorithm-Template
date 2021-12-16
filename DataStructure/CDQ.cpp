@@ -1,26 +1,7 @@
 // Luogu P3810
 // DeP
-#include <cctype>
-#include <cstdio>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
-
-namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
-
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
-  }
-  template<typename T> inline void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-    while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-    if (f) x = -x;
-  }
-}
-using IO::read;
 
 const int MAXN = 1e5 + 5, MAXM = 2e5 + 5;
 
@@ -69,14 +50,11 @@ void CDQ(const int& L, const int& R) {
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  read(n), read(K);
+  scanf("%d%d", &n, &K);
   for (int a, b, c, i = 1; i <= n; ++i)
-    read(a), read(b), read(c), A[i] = Item(i, a, b, c, 1);
+    scanf("%d%d%d", &a, &b, &c), A[i] = Item(i, a, b, c, 1);
 
-  sort(A+1, A+1+n);
+  sort(A + 1, A + 1 + n);
   for (int i = 1; i <= n; ++i) {
     int j = i;
     while (j < n && A[i] == A[j + 1]) ++j;

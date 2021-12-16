@@ -2,6 +2,7 @@
 // DeP
 #include <cctype>
 #include <cstdio>
+using namespace std;
 
 namespace IO {
   const int MAXSIZE = 1 << 18 | 1;
@@ -20,65 +21,74 @@ namespace IO {
 }
 using IO::read;
 
-const int MAXN = 1 << 17 | 1, P = 998244353, inv2 = 499122177;
-
-int m, n;
+typedef long long LL;
+const int LOG = 17, MAXN = 1 << LOG | 1;
+const int P = 998244353, iv2 = 499122177;
 
 namespace FWT {
-  void Or(int* A, int type) {
-    for (int k = 1, Mid = 2; Mid <= n; Mid <<= 1, k <<= 1)
-      for (int i = 0; i < n; i += Mid)
-        for (int j = 0; j < k; ++j)
-          A[i+j+k] = (A[i+j+k] + 1LL * type * A[i+j] % P + P) % P;
+  void Or(int* f, const int& n, const int& type) {
+    for (int Mid = 1; 2 * Mid <= n; Mid <<= 1)
+      for (int i = 0; i < n; i += Mid << 1)
+        for (int j = 0; j < Mid; ++j)
+          f[i+j+Mid] = (f[i+j+Mid] + (LL) type * f[i+j] % P + P) % P;
   }
 
-  void And(int* A, int type) {
-    for (int k = 1, Mid = 2; Mid <= n; Mid <<= 1, k <<= 1)
-      for (int i = 0; i < n; i += Mid)
-        for (int j = 0; j < k; ++j)
-          A[i+j] = (A[i+j] + 1LL * type * A[i+j+k] % P + P) % P;
+  void And(int* f, const int& n, const int& type) {
+    for (int Mid = 1; 2 * Mid <= n; Mid <<= 1)
+      for (int i = 0; i < n; i += Mid << 1)
+        for (int j = 0; j < Mid; ++j)
+          f[i+j] = (f[i+j] + (LL) type * f[i+j+Mid] % P + P) % P;
   }
 
-  void Xor(int* A, int type) {
-    for (int k = 1, Mid = 2; Mid <= n; Mid <<= 1, k <<= 1)
-      for (int i = 0; i < n; i += Mid)
-        for (int j = 0; j < k; ++j) {
-          int A0 = A[i+j], A1 = A[i+j+k];
-          A[i+j] = (A0 + A1) % P, A[i+j+k] = ((A0 - A1) % P + P) % P;
-          A[i+j] = 1LL * type * A[i+j] % P, A[i+j+k] = 1LL * type * A[i+j+k] % P;
+  void Xor(int* f, const int& n, const int& type) {
+    for (int Mid = 1; 2 * Mid <= n; Mid <<= 1)
+      for (int i = 0; i < n; i += Mid << 1)
+        for (int j = 0; j < Mid; ++j) {
+          int f0 = f[i+j], f1 = f[i+j+Mid];
+          f[i+j] = (f0 + f1) % P, f[i+j+Mid] = (f0 - f1 + P) % P;
+          if (type < 0) {
+            f[i+j] = (LL) iv2 * f[i+j] % P;
+            f[i+j+Mid] = (LL) iv2 * f[i+j+Mid] % P;
+          }
         }
   }
 }
 
-int A[MAXN], B[MAXN], P1[MAXN], P2[MAXN];
+int n, m;
+int f[MAXN], g[MAXN];
 
-signed main() {
+int A[MAXN], B[MAXN];
+
+int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
   read(m), n = 1 << m;
-  for (int i = 0; i < n; ++i) read(A[i]);
-  for (int i = 0; i < n; ++i) read(B[i]);
+  for (int i = 0; i < n; ++i) read(f[i]);
+  for (int j = 0; j < n; ++j) read(g[j]);
 
-  // or
-  for (int i = 0; i < n; ++i) P1[i] = A[i], P2[i] = B[i];
-  FWT::Or(P1, 1), FWT::Or(P2, 1);
-  for (int i = 0; i < n; ++i) P1[i] = 1LL * P1[i] * P2[i] % P;
-  FWT::Or(P1, -1);
-  for (int i = 0; i < n; ++i) printf("%d%c", P1[i], " \n"[i==n-1]);
+  for (int i = 0; i < n; ++i)
+    A[i] = f[i], B[i] = g[i];
+  FWT::Or(A, n, 1), FWT::Or(B, n, 1);
+  for (int i = 0; i < n; ++i) A[i] = (LL) A[i] * B[i] % P;
+  FWT::Or(A, n, -1);
+  for (int i = 0; i < n; ++i)
+    printf("%d%c", A[i], " \n"[i == n - 1]);
 
-  // and
-  for (int i = 0; i < n; ++i) P1[i] = A[i], P2[i] = B[i];
-  FWT::And(P1, 1), FWT::And(P2, 1);
-  for (int i = 0; i < n; ++i) P1[i] = 1LL * P1[i] * P2[i] % P;
-  FWT::And(P1, -1);
-  for (int i = 0; i < n; ++i) printf("%d%c", P1[i], " \n"[i==n-1]);
+  for (int i = 0; i < n; ++i)
+    A[i] = f[i], B[i] = g[i];
+  FWT::And(A, n, 1), FWT::And(B, n, 1);
+  for (int i = 0; i < n; ++i) A[i] = (LL) A[i] * B[i] % P;
+  FWT::And(A, n, -1);
+  for (int i = 0; i < n; ++i)
+    printf("%d%c", A[i], " \n"[i == n - 1]);
 
-  // xor
-  for (int i = 0; i < n; ++i) P1[i] = A[i], P2[i] = B[i];
-  FWT::Xor(P1, 1), FWT::Xor(P2, 1);
-  for (int i = 0; i < n; ++i) P1[i] = 1LL * P1[i] * P2[i] % P;
-  FWT::Xor(P1, inv2);
-  for (int i = 0; i < n; ++i) printf("%d%c", P1[i], " \n"[i==n-1]);
+  for (int i = 0; i < n; ++i)
+    A[i] = f[i], B[i] = g[i];
+  FWT::Xor(A, n, 1), FWT::Xor(B, n, 1);
+  for (int i = 0; i < n; ++i) A[i] = (LL) A[i] * B[i] % P;
+  FWT::Xor(A, n, -1);
+  for (int i = 0; i < n; ++i)
+    printf("%d%c", A[i], " \n"[i == n - 1]);
   return 0;
 }

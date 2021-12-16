@@ -24,48 +24,42 @@ using IO::read;
 
 const int MAXN = 1e5 + 5;
 
-int n, m;
+int n, q;
 
 namespace LCT {
-  int ch[2][MAXN], pre[MAXN], val[MAXN], datXor[MAXN];
-  bool tagRes[MAXN];
+  int ch[2][MAXN], pre[MAXN], val[MAXN], s[MAXN], res[MAXN];
 
-  inline void maintain(const int& nd) {
-    datXor[nd] = val[nd];
-    if (ch[0][nd]) datXor[nd] ^= datXor[ch[0][nd]];
-    if (ch[1][nd]) datXor[nd] ^= datXor[ch[1][nd]];
+  inline void maintain(int nd) {
+    s[nd] = val[nd];
+    if (ch[0][nd] > 0) s[nd] ^= s[ch[0][nd]];
+    if (ch[1][nd] > 0) s[nd] ^= s[ch[1][nd]];
+  }
+  inline void pushdown(int nd) {
+    if (!res[nd]) return;
+    swap(ch[0][nd], ch[1][nd]);
+    if (ch[0][nd] > 0) res[ch[0][nd]] ^= 1;
+    if (ch[1][nd] > 0) res[ch[1][nd]] ^= 1;
+    res[nd] = 0;
   }
 
-  inline void pushRes(const int& nd) {
-    swap(ch[0][nd], ch[1][nd]), tagRes[nd] ^= 1;
+  inline int which(int u) { return (pre[u] > 0)? ch[1][pre[u]] == u: 0; }
+  inline bool nroot(int u) {
+    return (pre[u] > 0)? ch[0][pre[u]] == u || ch[1][pre[u]] == u: false;
   }
-  inline void pushdown(const int& nd) {
-    if (!nd || !tagRes[nd]) return;
-    if (ch[0][nd]) pushRes(ch[0][nd]);
-    if (ch[1][nd]) pushRes(ch[1][nd]);
-    tagRes[nd] = false;
-  }
-
-  inline int which(const int& u) { return pre[u]? ch[1][pre[u]] == u: 0; }
-  inline bool nroot(const int& u) {
-    return pre[u]? ch[0][pre[u]] == u || ch[1][pre[u]] == u: false;
-  }
-
   inline void rotate(int u) {
     int fa = pre[u], w = which(u);
     pre[u] = pre[fa];
     if (nroot(fa)) ch[which(fa)][pre[fa]] = u;
     ch[w][fa] = ch[w ^ 1][u];
-    if (ch[w ^ 1][u]) pre[ch[w ^ 1][u]] = fa;
+    if (ch[w ^ 1][u] > 0) pre[ch[w ^ 1][u]] = fa;
     ch[w ^ 1][u] = fa, pre[fa] = u;
     maintain(fa);
   }
-
-  void splay(const int& u) {
+  void splay(int u) {
     static int stk[MAXN], top, fa;
     stk[top = 1] = fa = u;
     while (nroot(fa)) stk[++top] = fa = pre[fa];
-    while (top) pushdown(stk[top--]);
+    while (top > 0) pushdown(stk[top--]);
     while (nroot(u)) {
       fa = pre[u];
       if (nroot(fa)) which(fa) == which(u)? rotate(fa): rotate(u);
@@ -74,37 +68,34 @@ namespace LCT {
     maintain(u);
   }
 
-  inline void access(int u) {
+  void access(int u) {
     for (int v = 0; u; v = u, u = pre[u])
       splay(u), ch[1][u] = v, maintain(u);
   }
-  inline void evert(const int& u) { access(u), splay(u), pushRes(u); }
+  inline void evert(const int& u) { access(u), splay(u), res[u] ^= 1; }
   inline void split(const int& u, const int& v) {
     evert(u), access(v), splay(v);
   }
 
-  inline int findroot(int u) {
-    access(u), splay(u);
-    while (ch[0][u]) pushdown(u), u = ch[0][u];
+  inline int Fndrt(int u) {
+    access(u), splay(u), pushdown(u);
+    while (ch[0][u] > 0) u = ch[0][u], pushdown(u);
     return splay(u), u;
   }
 
   inline void Lnk(const int& u, const int& v) {
-    evert(v);
-    if (findroot(u) != v) pre[v] = u;
+    evert(u);
+    if (Fndrt(v) != u) pre[u] = v;
   }
   inline void Cut(const int& u, const int& v) {
     evert(u);
-    if (findroot(v) != u || pre[v] != u || ch[0][v]) return;
-    pre[v] = ch[1][u] = 0;
-    maintain(u);
+    if (Fndrt(v) != u || pre[v] != u || ch[0][v]) return;
+    pre[v] = ch[1][u] = 0, maintain(u);
   }
 
-  inline int Qry(const int& u, const int& v) {
-    return split(u, v), datXor[v];
-  }
-  inline void Mdy(const int& u, const int& x) {
-    splay(u), val[u] = x, maintain(u);
+  inline int Qry(const int& u, const int& v) { return split(u, v), s[v]; }
+  inline void Mdy(const int& u, const int& d) {
+    splay(u), val[u] = d, maintain(u);
   }
 }
 
@@ -112,11 +103,10 @@ int main() {
 #ifndef ONLINE_JUDGE
   freopen("input.in", "r", stdin);
 #endif
-  read(n), read(m);
+  read(n), read(q);
   for (int i = 1; i <= n; ++i) read(LCT::val[i]);
 
-  while (m--) {
-    static int opt, x, y;
+  for (int opt, x, y; q; --q) {
     read(opt), read(x), read(y);
     switch (opt) {
       case 0: printf("%d\n", LCT::Qry(x, y)); break;
