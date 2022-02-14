@@ -1,3 +1,3 @@
-# Algorithm Template
+# Algorithm Template for Competitive Programming 
 
 间接性咕咕中...
