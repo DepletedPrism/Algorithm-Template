@@ -1,38 +1,36 @@
 // Luogu P3805
 // DeP
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MAXN = 1.1e7 + 5, MAXM = MAXN << 1 | 1;
+const int MAXN = 1.1e7 + 5;
 
-int n, m;
-char S[MAXN], T[MAXM];
+char str[MAXN];
+int d1[MAXN], d2[MAXN];
 
-int MxR[MAXM];
-
-int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  scanf("%s", S + 1);
-
-  n = (int) strlen(S + 1);
-  T[0] = '$', T[1] = '#';
-  for (int i = 1; i <= n; ++i)
-    T[i << 1] = S[i], T[i << 1 | 1] = '#';
-  m = n << 1 | 1;
-  for (int i = 1, p = 0, Mid = 0; i <= m; ++i) {
-    MxR[i] = (i < p)? min(MxR[2 * Mid - i], p - i): 1;
-    while (T[i - MxR[i]] == T[i + MxR[i]]) ++MxR[i];
-    if (p < i + MxR[i])
-      p = i + MxR[i], Mid = i;
+int main(void) {
+  scanf("%s", str + 1);
+  int ans = 0, n = strlen(str + 1);
+  for (int l = 1, r = 0, i = 1; i <= n; ++i) {
+    int k = (i > r)? 1: min(r - i, d1[l + r - i]);
+    while (i - k >= 1 && i + k <= n && str[i - k] == str[i + k])
+      ++k;
+    d1[i] = k--;
+    if (i + k > r)
+      l = i - k, r = i + k;
   }
-
-  int ans = 0;
-  for (int i = 1; i <= m; ++i) ans = max(ans, MxR[i] - 1);
-
+  for (int i = 1; i <= n; ++i)
+    ans = max(ans, d1[i] * 2 - 1);
+  for (int l = 1, r = 0, i = 1; i <= n; ++i) {
+    int k = (i > r)? 0: min(r - i, d2[l + r - i]);
+    while (i - k >= 0 && i + k <= n && str[i - k + 1] == str[i + k])
+      ++k;
+    d2[i] = --k;
+    if (i + k > r)
+      l = i - k + 1, r = i + k;
+  }
+  for (int i = 1; i <= n; ++i)
+    ans = max(ans, d2[i] * 2);
   printf("%d\n", ans);
   return 0;
 }
