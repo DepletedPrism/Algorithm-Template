@@ -22,12 +22,12 @@ int main(void) {
   for (int i = 1; i <= n; ++i)
     ans = max(ans, d1[i] * 2 - 1);
   for (int l = 1, r = 0, i = 1; i <= n; ++i) {
-    int k = (i > r)? 0: min(r - i, d2[l + r - i]);
-    while (i - k >= 0 && i + k <= n && str[i - k + 1] == str[i + k])
+    int k = (i > r)? 0: min(r - i + 1, d2[l + r - i + 1]);
+    while (i - k - 1 >= 1 && i + k <= n && str[i - k - 1] == str[i + k])
       ++k;
-    d2[i] = --k;
+    d2[i] = k--;
     if (i + k > r)
-      l = i - k + 1, r = i + k;
+      l = i - k - 1, r = i + k;
   }
   for (int i = 1; i <= n; ++i)
     ans = max(ans, d2[i] * 2);
