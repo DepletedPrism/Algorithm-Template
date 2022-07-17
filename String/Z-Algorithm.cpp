@@ -1,9 +1,6 @@
 // Luogu P5410
 // DeP
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
 namespace IO {
@@ -27,9 +24,6 @@ char P[MAXN], T[MAXN];
 int z[MAXN], p[MAXN];
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
   IO::init();
   read(T + 1), read(P + 1);
 

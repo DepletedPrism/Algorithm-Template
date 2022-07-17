@@ -2,7 +2,6 @@
 // DeP
 #include <cctype>
 #include <cstdio>
-using namespace std;
 
 namespace IO {
   const int MAXSIZE = 1 << 18 | 1;
@@ -32,23 +31,23 @@ int A[MAXN];
 namespace SGT {
   int s[MAXN << 2], tm[MAXN << 2], ta[MAXN << 2];
 
-  inline void maintain(int nd) { s[nd] = (s[lc] + s[rc]) % P; }
+  inline void maintain(int nd) { s[nd] = (s[lc] + s[rc]) % p; }
 
-  inline void Pushm(int nd, const int& v) {
-    s[nd] = (LL) s[nd] * v % P;
-    ta[nd] = (LL) ta[nd] * v % P, tm[nd] = (LL) tm[nd] * v % P;
+  inline void pushm(int nd, const int& v) {
+    s[nd] = (LL) s[nd] * v % p;
+    ta[nd] = (LL) ta[nd] * v % p, tm[nd] = (LL) tm[nd] * v % p;
   }
-  inline void Pusha(int nd, int L, int R, const int& v) {
-    ta[nd] = (ta[nd] + v) % P;
-    s[nd] = (s[nd] + (LL) (R - L + 1) * v) % P;
+  inline void pusha(int nd, int L, int R, const int& v) {
+    ta[nd] = (ta[nd] + v) % p;
+    s[nd] = (s[nd] + (LL) (R - L + 1) * v) % p;
   }
 
-  inline void Pushdown(int nd, int L, int R) {
+  inline void pushdown(int nd, int L, int R) {
     if (tm[nd] != 1)
-      Pushm(lc, tm[nd]), Pushm(rc, tm[nd]), tm[nd] = 1;
+      pushm(lc, tm[nd]), pushm(rc, tm[nd]), tm[nd] = 1;
     if (ta[nd] > 0) {
       int Mid = (L + R) / 2;
-      Pusha(lc, L, Mid, ta[nd]), Pusha(rc, Mid + 1, R, ta[nd]), ta[nd] = 0;
+      pusha(lc, L, Mid, ta[nd]), pusha(rc, Mid + 1, R, ta[nd]), ta[nd] = 0;
     }
   }
 
@@ -60,40 +59,37 @@ namespace SGT {
     maintain(nd);
   }
 
-  void Add(int nd, int L, int R, int oPL, int oPR, const int& v) {
-    if (oPL <= L && R <= oPR) return Pusha(nd, L, R, v);
-    Pushdown(nd, L, R);
+  void Add(int nd, int L, int R, int opL, int opR, const int& v) {
+    if (opL <= L && R <= opR) return pusha(nd, L, R, v);
+    pushdown(nd, L, R);
     int Mid = (L + R) / 2;
-    if (oPL <= Mid) Add(lc, L, Mid, oPL, oPR, v);
-    if (oPR > Mid) Add(rc, Mid + 1, R, oPL, oPR, v);
+    if (opL <= Mid) Add(lc, L, Mid, opL, opR, v);
+    if (opR > Mid) Add(rc, Mid + 1, R, opL, opR, v);
     maintain(nd);
   }
 
-  void Mul(int nd, int L, int R, int oPL, int oPR, const int& v) {
-    if (oPL <= L && R <= oPR) return Pushm(nd, v);
-    Pushdown(nd, L, R);
+  void Mul(int nd, int L, int R, int opL, int opR, const int& v) {
+    if (opL <= L && R <= opR) return pushm(nd, v);
+    pushdown(nd, L, R);
     int Mid = (L + R) / 2;
-    if (oPL <= Mid) Mul(lc, L, Mid, oPL, oPR, v);
-    if (oPR > Mid) Mul(rc, Mid + 1, R, oPL, oPR, v);
+    if (opL <= Mid) Mul(lc, L, Mid, opL, opR, v);
+    if (opR > Mid) Mul(rc, Mid + 1, R, opL, opR, v);
     maintain(nd);
   }
 
-  int Qry(int nd, int L, int R, int oPL, int oPR) {
-    if (oPL <= L && R <= oPR) return s[nd];
-    Pushdown(nd, L, R);
+  int Qry(int nd, int L, int R, int opL, int opR) {
+    if (opL <= L && R <= opR) return s[nd];
+    pushdown(nd, L, R);
     int Mid = (L + R) / 2;
-    if (oPR <= Mid) return Qry(lc, L, Mid, oPL, oPR);
-    if (oPL > Mid) return Qry(rc, Mid + 1, R, oPL, oPR);
-    return (Qry(lc, L, Mid, oPL, oPR) + Qry(rc, Mid + 1, R, oPL, oPR)) % P;
+    if (opR <= Mid) return Qry(lc, L, Mid, opL, opR);
+    if (opL > Mid) return Qry(rc, Mid + 1, R, opL, opR);
+    return (Qry(lc, L, Mid, opL, opR) + Qry(rc, Mid + 1, R, opL, opR)) % p;
   }
 }
 #undef lc
 #undef rc
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("inPut.in", "r", stdin);
-#endif
   read(n), read(q), read(p);
   for (int i = 1; i <= n; ++i) read(A[i]);
 
@@ -112,7 +108,6 @@ int main() {
       case 3:
         printf("%d\n", SGT::Qry(1, 1, n, L, R));
         break;
-      default: fprintf(stderr, "ERR\n");
     }
   }
   return 0;

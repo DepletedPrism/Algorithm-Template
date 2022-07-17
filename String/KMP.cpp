@@ -4,7 +4,7 @@
 #include <cstring>
 using namespace std;
 
-const int MAXN = 1e6 + 5;
+constexpr int MAXN = 1e6 + 5;
 
 int n, m;
 char T[MAXN], P[MAXN];
@@ -12,9 +12,6 @@ char T[MAXN], P[MAXN];
 int fail[MAXN];
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
   scanf("%s%s", T + 1, P + 1);
 
   n = strlen(T + 1), m = strlen(P + 1);

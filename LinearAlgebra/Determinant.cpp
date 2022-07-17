@@ -1,28 +1,9 @@
 // Luogu P6178
 // DeP
-#include <cctype>
-#include <cstdio>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
-
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
-  }
-  template<typename T> inline void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-    while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-    if (f) x = -x;
-  }
-}
-using IO::read;
-
-const int MAXN = 3e2 + 5, MAXM = 1e5 + 5, P = 1e9 + 7;
+constexpr int MAXN = 3e2 + 5, MAXM = 1e5 + 5, P = 1e9 + 7;
 
 int fpow(int base, int b) {
   int ret = 1;
@@ -69,7 +50,7 @@ int Det(int n) {
 
 int n, m, t;
 
-inline void AddEdge(int u, int v, int w) {
+inline void addEdge(int u, int v, int w) {
   if (t == 0) {
     A[u][u] = (A[u][u] + w) % P, A[u][v] = (A[u][v] - w + P) % P;
     A[v][v] = (A[v][v] + w) % P, A[v][u] = (A[v][u] - w + P) % P;
@@ -78,12 +59,9 @@ inline void AddEdge(int u, int v, int w) {
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  read(n), read(m), read(t);
+  scanf("%d%d%d", &n, &m, &t);
   for (int u, v, w, i = 1; i <= m; ++i)
-    read(u), read(v), read(w), AddEdge(u, v, w);
+    scanf("%d%d%d", &u, &v, &w), addEdge(u, v, w);
 
   printf("%d\n", Det(n));
   return 0;

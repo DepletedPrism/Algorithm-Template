@@ -8,19 +8,19 @@ using namespace std;
 const int MAXN = 1e5 + 5;
 
 int n;
-char S[MAXN];
+char s[MAXN];
 
 namespace SA {
   int sa[MAXN], ht[MAXN];
   int px[MAXN], id[MAXN], rnk[MAXN], cnt[MAXN];
 
-  inline bool cmp(const int& x, const int& y, const int& k) {
+  inline bool cmp(int x, int y, int k) {
     return id[x] == id[y] && id[x + k] == id[y + k];
   }
 
   inline void build(int m) {
     int i, k, p = 0;
-    for (i = 1; i <= n; ++i) ++cnt[rnk[i] = S[i]];
+    for (i = 1; i <= n; ++i) ++cnt[rnk[i] = s[i]];
     for (i = 1; i <= m; ++i) cnt[i] += cnt[i - 1];
     for (i = n; i; --i) sa[cnt[rnk[i]]--] = i;
     for (k = 1; k <= n && p < n; k <<= 1, m = p) {
@@ -38,21 +38,15 @@ namespace SA {
     for (i = 1; i <= n; ++i) rnk[sa[i]] = i;
     for (k = 0, i = 1; i <= n; ++i) {
       if (k) --k;
-      while (S[i + k] == S[sa[rnk[i] - 1] + k]) ++k;
+      while (s[i + k] == s[sa[rnk[i] - 1] + k]) ++k;
       ht[rnk[i]] = k;
     }
   }
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  scanf("%s", S + 1);
-
-  n = (int) strlen(S + 1);
-  SA::build('z');
-
+  scanf("%s", s + 1);
+  n = strlen(s + 1), SA::build('z');
   for (int i = 1; i <= n; ++i)
     printf("%d%c", SA::sa[i], " \n"[i == n]);
   for (int i = 2; i <= n; ++i)
