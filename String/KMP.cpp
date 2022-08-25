@@ -1,33 +1,29 @@
 // Luogu P3375
 // DeP
-#include <cstdio>
-#include <cstring>
+#include <bits/stdc++.h>
 using namespace std;
 
-constexpr int MAXN = 1e6 + 5;
-
-int n, m;
-char T[MAXN], P[MAXN];
-
-int fail[MAXN];
-
 int main() {
-  scanf("%s%s", T + 1, P + 1);
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  string s, t;
+  cin >> t >> s;
 
-  n = strlen(T + 1), m = strlen(P + 1);
-  fail[1] = 0;
-  for (int i = 2, j = 0; i <= m; ++i) {
-    while (j > 0 && P[i] != P[j + 1]) j = fail[j];
-    if (P[i] == P[j + 1]) ++j;
+  int n = s.size(), m = t.size();
+  vector<int> fail(n);
+  fail[0] = 0;
+  for (int i = 1, j = 0; i < n; ++i) {
+    while (j > 0 && s[i] != s[j]) j = fail[j - 1];
+    if (s[i] == s[j]) ++j;
     fail[i] = j;
   }
-  for (int i = 1, j = 0; i <= n; ++i) {
-    while (j > 0 && T[i] != P[j + 1]) j = fail[j];
-    if (T[i] == P[j + 1]) ++j;
-    if (j == m) printf("%d\n", i - m + 1);
+  for (int i = 0, j = 0; i < m; ++i) {
+    while (j > 0 && t[i] != s[j]) j = fail[j - 1];
+    if (t[i] == s[j]) ++j;
+    if (j == n)
+      cout << i - n + 2 << '\n';
   }
 
-  for (int i = 1; i <= m; ++i)
-    printf("%d%c", fail[i], " \n"[i == m]);
+  for (int i = 0; i < n; ++i)
+    cout << fail[i] << " \n"[i + 1 == n];
   return 0;
 }

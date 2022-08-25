@@ -1,97 +1,133 @@
 // UOJ #34
 // DeP
-#include <cctype>
-#include <cstdio>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
+using LL = long long;
+constexpr int P = 998244353, G = 3;
 
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
-  }
-  template<typename T> inline void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-    while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-    if (f) x = -x;
-  }
-}
-using IO::read;
-
-const int LOG = 18, MAXN = 1 << LOG | 1, P = 998244353, G = 3;
-
-int W[LOG][MAXN];
-
-int fpow(int base, int b) {
-  int ret = 1;
-  while (b > 0) {
-    if (b & 1) ret = 1LL * ret * base % P;
-    base = 1LL * base * base % P, b >>= 1;
-  }
+template<typename T> T fpow(T b, int m) {
+  T ret = 1;
+  for (; m > 0; m >>= 1, b *= b)
+    if (m & 1) ret *= b;
   return ret;
 }
 
+int norm(int x) {
+  if (x < 0)
+    return x + P;
+  if (x >= P)
+    return x - P;
+  return x;
+}
+
+struct Mint {
+  int x;
+  Mint(int _x = 0): x(norm(_x)) { }
+  Mint inv() const {
+    assert(x != 0);
+    return fpow(*this, P - 2);
+  }
+  Mint& operator += (const Mint& rhs) {
+    x = norm(x + rhs.x);
+    return *this;
+  }
+  Mint& operator -= (const Mint& rhs) {
+    x = norm(x - rhs.x);
+    return *this;
+  }
+  Mint& operator *= (const Mint& rhs) {
+    x = (LL) x * rhs.x % P;
+    return *this;
+  }
+  Mint& operator /= (const Mint& rhs) {
+    return *this *= rhs.inv();
+  }
+  friend Mint operator + (const Mint& lsh, const Mint& rhs) {
+    Mint ret = lsh;
+    return ret += rhs;
+  }
+  friend Mint operator - (const Mint& lsh, const Mint& rhs) {
+    Mint ret = lsh;
+    return ret -= rhs;
+  }
+  friend Mint operator * (const Mint& lsh, const Mint& rhs) {
+    Mint ret = lsh;
+    return ret *= rhs;
+  }
+  friend Mint operator / (const Mint& lsh, const Mint& rhs) {
+    Mint ret = lsh;
+    return ret /= rhs;
+  }
+  friend istream& operator >> (istream& is, Mint& a) {
+    return is >> a.x;
+  }
+  friend ostream& operator << (ostream& os, const Mint& a) {
+    return os << a.x;
+  }
+};
+
+using poly = vector<Mint>;
+
 namespace Poly {
-  int r[MAXN];
-  inline void init(const int& Lim, const int& L) {
-    for (int i = 1; i < Lim; ++i) r[i] = (r[i>>1] >> 1) | ((i & 1) << (L-1));
+  vector<int> rev;
+  vector<Mint> rts{0, 1};
+
+  void init(int lim, int l) {
+    rev.resize(lim);
+    for (int i = 1; i < lim; ++i)
+      rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (l - 1));
+    if (int(rts.size()) < lim) {
+      int k = __builtin_ctz(rts.size());
+      rts.resize(lim);
+      for (; k < l; ++k) {
+        Mint w = fpow(Mint(G), (P - 1) >> (k + 1));
+        for (int i = 1 << (k - 1); i < (1 << k); ++i)
+          rts[i << 1] = rts[i], rts[i << 1 | 1] = w * rts[i];
+      }
+    }
   }
 
-  void NTT(int* f, const int& Lim, const int& type) {
-    for (int i = 1; i < Lim; ++i) if (i < r[i]) swap(f[i], f[r[i]]);
-    for (int k = 0, Mid = 1; Mid < Lim; ++k, Mid <<= 1) {
-      const int* w = W[k];
-      for (int i = 0; i < Lim; i += Mid << 1)
-        for (int j = 0; j < Mid; ++j) {
-          int f0 = f[i+j], f1 = 1LL * w[j] * f[i+j+Mid] % P;
-          f[i+j] = (f0 + f1) % P, f[i+j+Mid] = (f0 - f1 + P) % P;
+  void dft(poly& f) {
+    int lim = f.size();
+    for (int i = 1; i < lim; ++i)
+      if (i < rev[i]) swap(f[i], f[rev[i]]);
+    for (int k = 1; k < lim; k <<= 1)
+      for (int i = 0; i < lim; i += k << 1)
+        for (int j = 0; j < k; ++j) {
+          Mint f0 = f[i+j], f1 = rts[k+j] * f[i+j+k];
+          f[i+j] = f0 + f1, f[i+j+k] = f0 - f1;
         }
-    }
-    if (type < 0) {
-      int iv = fpow(Lim, P - 2);
-      for (int i = 0; i < Lim; ++i) f[i] = 1LL * f[i] * iv % P;
-      reverse(f + 1, f + Lim);
-    }
+  }
+  void idft(poly& f) {
+    int lim = f.size();
+    Mint iv = Mint(1) / lim;
+    dft(f);
+    for (auto &v: f) v *= iv;
+    reverse(f.begin() + 1, f.end());
   }
 
-  void Mul(int* f, const int& n, int* g, const int& m, int* h) {
-    static int A[MAXN], B[MAXN];
-    int Lim = 1, L = 0;
-    while (Lim < n + m - 1) Lim <<= 1, ++L;
-    for (int i = 0; i < Lim; ++i)
-      A[i] = (i < n)? f[i]: 0, B[i] = (i < m)? g[i]: 0;
-    init(Lim, L), NTT(A, Lim, 1), NTT(B, Lim, 1);
-    for (int i = 0; i < Lim; ++i) h[i] = 1LL * A[i] * B[i] % P;
-    NTT(h, Lim, -1);
-  }
-}
-
-void PolyPre() {
-  for (int w, i = 0, Mid = 1; i < LOG; ++i, Mid <<= 1) {
-    W[i][0] = 1, w = fpow(G, (P - 1) / (Mid << 1));
-    for (int j = 1; j < Mid; ++j)
-      W[i][j] = 1LL * w * W[i][j - 1] % P;
+  poly Mul(poly f, poly g) {
+    int lim = 1, l = 0, n = f.size(), m = g.size();
+    while (lim < n + m - 1) lim <<= 1, ++l;
+    init(lim, l);
+    f.resize(lim), dft(f);
+    g.resize(lim), dft(g);
+    for (int i = 0; i < lim; ++i) f[i] *= g[i];
+    idft(f), f.resize(n + m - 1);
+    return f;
   }
 }
-
-int n, m;
-int f[MAXN], g[MAXN];
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  read(n), read(m), ++n, ++m;
-  for (int i = 0; i < n; ++i) read(f[i]);
-  for (int j = 0; j < m; ++j) read(g[j]);
-
-  PolyPre(), Poly::Mul(f, n, g, m, f);
-
-  for (int i = 0; i < n + m - 1; ++i)
-    printf("%d%c", f[i], " \n"[i == n + m - 2]);
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  int n, m;
+  cin >> n >> m;
+  poly f(n + 1), g(m + 1);
+  for (auto &v: f) cin >> v;
+  for (auto &v: g) cin >> v;
+  f = Poly::Mul(f, g);
+  for (int i = 0; i <= n + m; ++i)
+    cout << f[i] << " \n"[i == n + m];
   return 0;
 }

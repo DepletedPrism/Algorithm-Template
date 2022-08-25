@@ -1,50 +1,59 @@
 // Luogu P3804
 // DeP
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-typedef long long LL;
-const int MAXN = 1e6 + 5;
-
-int n;
-char S[MAXN];
+using LL = long long;
+constexpr int SIGMA = 26;
 
 namespace SAM {
-  const int MAXN = ::MAXN << 1, SIGMA = 26;
-  int ch[SIGMA][MAXN], len[MAXN], lnk[MAXN], nidx, lst;
-  int cnt[MAXN], idx[MAXN], f[MAXN];
+  int nidx;
+  vector<int> len, lnk;
+  vector<array<int, SIGMA>> ch;
 
-  inline void init() { nidx = lst = 1; }
+  inline void init(int n) {
+    nidx = 1;
+    len.resize(2 * n), lnk.resize(2 * n), ch.resize(2 * n);
+  }
 
-  inline void Ins(int v) {
-    int nd = ++nidx, p = lst;
-    len[nd] = len[lst] + 1, f[nd] = 1;
-    while (p && !ch[v][p]) ch[v][p] = nd, p = lnk[p];
+  int ins(int c, int p) {
+    int nd = ++nidx;
+    len[nd] = len[p] + 1;
+    while (p && !ch[p][c])
+      ch[p][c] = nd, p = lnk[p];
     if (!p) lnk[nd] = 1;
     else {
-      int q = ch[v][p];
+      int q = ch[p][c];
       if (len[q] == len[p] + 1) lnk[nd] = q;
       else {
         int nxt = ++nidx;
-        len[nxt] = len[p] + 1, lnk[nxt] = lnk[q];
-        for (int c = 0; c < SIGMA; ++c) ch[c][nxt] = ch[c][q];
-        while (p && ch[v][p] == q) ch[v][p] = nxt, p = lnk[p];
+        len[nxt] = len[p] + 1;
+        lnk[nxt] = lnk[q], ch[nxt] = ch[q];
+        while (p && ch[p][c] == q)
+          ch[p][c] = nxt, p = lnk[p];
         lnk[q] = lnk[nd] = nxt;
       }
     }
-    lst = nd;
+    return nd;
   }
 
-  LL solve() {
+  LL solve(const string& s) {
+    int n = s.size();
+    init(n);
+    vector<int> f(2 * n), idx(2 * n), cnt(n + 1);
+    for (int lst = 1, i = 0; i < n; ++i)
+      lst = SAM::ins(s[i] - 'a', lst), f[lst] = 1;
     LL ret = 0;
-    for (int i = 1; i <= nidx; ++i) ++cnt[len[i]];
-    for (int i = 1; i <= n; ++i) cnt[i] += cnt[i-1];
-    for (int i = nidx; i; --i) idx[cnt[len[i]]--] = i;
-    for (int i = nidx; i; --i) {
+    for (int u = 1; u <= nidx; ++u)
+      ++cnt[len[u]];
+    for (int i = 1; i <= n; ++i)
+      cnt[i] += cnt[i - 1];
+    for (int u = 1; u <= nidx; ++u)
+      idx[cnt[len[u]]--] = u;
+    for (int i = nidx; i >= 1; --i) {
       int u = idx[i];
-      if (f[u] > 1) ret = max(ret, (LL) f[u] * len[u]);
+      if (f[u] > 1)
+        ret = max(ret, (LL) f[u] * len[u]);
       f[lnk[u]] += f[u];
     }
     return ret;
@@ -52,16 +61,9 @@ namespace SAM {
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  SAM::init();
-  scanf("%s", S + 1);
-
-  n = strlen(S + 1);
-  for (int i = 1; i <= n; ++i)
-    SAM::Ins(S[i] - 'a');
-
-  printf("%lld\n", SAM::solve());
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  string s;
+  cin >> s;
+  cout << SAM::solve(s) << '\n';
   return 0;
 }

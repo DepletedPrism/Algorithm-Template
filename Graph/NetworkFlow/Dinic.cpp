@@ -3,51 +3,47 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef long long LL; 
-const int MAXN = 1e2 + 5, MAXM = 5e3 + 5;
-
-int n, m, S, T;
-
-namespace Graph {
-  struct Edge {
-    int nxt, to, flow, cap;
-  } edges[MAXM << 1];
-  int head[MAXN], eidx;
-
-  inline void init() {
-    memset(head, -1, sizeof head), eidx = 1;
-  }
-  inline void addEdge(int u, int v, int c) {
-    edges[++eidx] = (Edge){ head[u], v, 0, c }, head[u] = eidx;
-    edges[++eidx] = (Edge){ head[v], u, 0, 0 }, head[v] = eidx;
-  }
-}
+using LL = long long;
 
 namespace Dinic {
-  using namespace Graph;
-  int cur[MAXN], depth[MAXN], vis[MAXN], Time;
+  struct Edge {
+    int nxt, v, flow, cap;
+  };
+  vector<Edge> edges;
+  vector<int> head, cur, depth, vis;
 
-  bool BFS() {
-    static int Q[MAXN], h, t;
-    depth[S] = 0, vis[S] = ++Time, Q[h = t = 1] = S;
-    while (h <= t) {
-      int u = Q[h++];
-      for (int i = head[u]; ~i; i = edges[i].nxt) {
-        const Edge& e = edges[i];
-        if (e.flow < e.cap && vis[e.to] != Time)
-          vis[e.to] = Time, depth[e.to] = depth[u] + 1, Q[++t] = e.to;
-      }
-    }
-    return vis[T] == Time;
+  inline void init(int n) {
+    edges.clear();
+    head.resize(n), depth.resize(n), vis.resize(n);
+    fill(head.begin(), head.end(), -1);
+  }
+  inline void addEdge(int u, int v, int c) {
+    edges.push_back({head[u], v, 0, c}), head[u] = edges.size() - 1;
+    edges.push_back({head[v], u, 0, 0}), head[v] = edges.size() - 1;
   }
 
-  LL DFS(int u, int a) {
-    if (u == T || !a) return a;
+  bool BFS(int s, int t) {
+    static int vcnt;
+    queue<int> Q;
+    depth[s] = 0, vis[s] = ++vcnt, Q.push(s);
+    while (!Q.empty()) {
+      int u = Q.front(); Q.pop();
+      for (int i = head[u]; ~i; i = edges[i].nxt) {
+        const Edge& e = edges[i];
+        if (e.flow < e.cap && vis[e.v] != vcnt)
+          vis[e.v] = vcnt, depth[e.v] = depth[u] + 1, Q.push(e.v);
+      }
+    }
+    return vis[t] == vcnt;
+  }
+
+  LL DFS(int u, int t, int a) {
+    if (u == t || !a) return a;
     LL flow = 0;
     for (int f, &i = cur[u]; ~i; i = edges[i].nxt) {
       Edge& e = edges[i];
-      if (depth[e.to] == depth[u] + 1 &&
-          (f = DFS(e.to, min(a, e.cap - e.flow))) > 0) {
+      if (depth[e.v] == depth[u] + 1
+          && (f = DFS(e.v, t, min(a, e.cap - e.flow))) > 0) {
         e.flow += f, edges[i ^ 1].flow -= f, flow += f, a -= f;
         if (!a) break;
       }
@@ -55,21 +51,21 @@ namespace Dinic {
     return flow;
   }
 
-  LL maxflow() {
+  LL maxflow(int s, int t) {
     LL ret = 0;
-    while (BFS())
-      memcpy(cur, head, sizeof cur), ret += DFS(S, INT_MAX);
+    while (BFS(s, t))
+      cur = head, ret += DFS(s, t, INT_MAX);
     return ret;
   }
 }
 
-int main(void) {
-  Graph::init();
-
-  scanf("%d%d%d%d", &n, &m, &S, &T);
+int main() {
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  int n, m, s, t;
+  cin >> n >> m >> s >> t;
+  Dinic::init(n + 1);
   for (int u, v, c, i = 1; i <= m; ++i)
-    scanf("%d%d%d", &u, &v, &c), Graph::addEdge(u, v, c);
-
-  printf("%lld\n", Dinic::maxflow());
+    cin >> u >> v >> c, Dinic::addEdge(u, v, c);
+  cout << Dinic::maxflow(s, t) << '\n';
   return 0;
 }

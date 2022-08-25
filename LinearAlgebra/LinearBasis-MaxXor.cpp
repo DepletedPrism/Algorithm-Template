@@ -1,38 +1,40 @@
-// Luogu P3812
+// HDU 7184
 // DeP
 #include <cstdio>
 #include <cstring>
-using namespace std;
 
-typedef long long LL;
-const int MAXN = 5e1 + 5, LOG = 51;
+using LL = long long;
+constexpr int MAXN = 5e1 + 5, LOG = 51;
 
-struct Linear {
+struct Basis {
   LL p[LOG];
-  Linear() { memset(p, 0, sizeof p); }
+  Basis() { memset(p, 0, sizeof p); }
 
-  inline void Ins(LL x) {
-    for (int i = LOG - 1; i >= 0; --i) if ((x >> i) & 1) {
-      if (!p[i]) { p[i] = x; break; }
-      x ^= p[i];
-    }
+  void ins(LL x) {
+    for (int i = LOG - 1; i >= 0; --i)
+      if ((x >> i) & 1) {
+        if (!p[i]) { p[i] = x; break; }
+        x ^= p[i];
+      }
   }
-  inline LL Qry() {
+  LL qry() {
     LL ret = 0;
     for (int i = LOG - 1; i >= 0; --i)
       if (!((ret >> i) & 1)) ret ^= p[i];
     return ret;
   }
-} B;
+};
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  static int n;
-  scanf("%d", &n);
-  for (LL x; n; --n)
-    scanf("%lld", &x), B.Ins(x);
-  printf("%lld\n", B.Qry());
+  int ti;
+  scanf("%d", &ti);
+  while (ti--) {
+    int n;
+    scanf("%d", &n);
+    Basis b;
+    for (LL x; n > 0; --n)
+      scanf("%lld", &x), b.ins(x);
+    printf("%lld\n", b.qry());
+  }
   return 0;
 }
