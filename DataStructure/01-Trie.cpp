@@ -1,11 +1,9 @@
 // LOJ #3303
 // DeP
-#include <cstdio>
-#include <vector>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-typedef long long LL;
+using LL = long long;
 constexpr int MAXN = 525010 + 5, LOG = 21;
 
 int n; LL ans;

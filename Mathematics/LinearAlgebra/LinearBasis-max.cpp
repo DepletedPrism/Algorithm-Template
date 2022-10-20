@@ -1,15 +1,14 @@
-// HDU 7184
+// Luogu P3812
 // DeP
-#include <cstdio>
-#include <cstring>
+#include <bits/stdc++.h>
+using namespace std;
 
 using LL = long long;
-constexpr int MAXN = 5e1 + 5, LOG = 51;
+constexpr int LOG = 50;
 
 struct Basis {
-  LL p[LOG];
-  Basis() { memset(p, 0, sizeof p); }
-
+  vector<LL> p;
+  Basis() { p.resize(LOG); }
   void ins(LL x) {
     for (int i = LOG - 1; i >= 0; --i)
       if ((x >> i) & 1) {
@@ -26,15 +25,11 @@ struct Basis {
 };
 
 int main() {
-  int ti;
-  scanf("%d", &ti);
-  while (ti--) {
-    int n;
-    scanf("%d", &n);
-    Basis b;
-    for (LL x; n > 0; --n)
-      scanf("%lld", &x), b.ins(x);
-    printf("%lld\n", b.qry());
-  }
+  int n;
+  cin >> n;
+  Basis b;
+  for (LL x; n > 0; --n)
+    cin >> x, b.ins(x);
+  cout << b.qry() << '\n';
   return 0;
 }

@@ -23,6 +23,17 @@ int main() {
       cout << i - n + 2 << '\n';
   }
 
+  // KMP automaton
+  vector<array<int, SIGMA>> ch(n);
+  for (int j = 0; j < n; ++j) {
+    for (int c = 0; c < SIGMA; ++c) {
+      if (j > 0 && c != s[j] - 'a')
+        ch[j][c] = ch[fail[j - 1]][c];
+      else
+        ch[j][c] = j + (c == s[j] - 'a');
+    }
+  }
+
   for (int i = 0; i < n; ++i)
     cout << fail[i] << " \n"[i + 1 == n];
   return 0;

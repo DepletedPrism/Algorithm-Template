@@ -1,65 +1,52 @@
 // Luogu P4287
 // DeP
-#include <cstdio>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MAXN = 500005, SIGMA = 26;
-
-int n;
-char S[MAXN];
+constexpr int SIGMA = 26;
 
 namespace PAM {
-  int ch[MAXN][SIGMA], len[MAXN], fail[MAXN], trans[MAXN], last, nidx, ptr;
-  char S[MAXN];
+  int nidx;
+  vector<int> str, len, fail, depth;
+  vector<array<int, SIGMA>> ch;
 
-  inline void init() {
-    last = 0, nidx = 1;
+  inline void init(int n) {
+    nidx = 1;
+    len.resize(n + 2), fail.resize(n + 2), depth.resize(n + 2);
+    ch.resize(n + 2);
     len[0] = 0, fail[0] = 1, len[1] = -1;
-    S[ptr = 0] = '$';
   }
 
-  inline int getfail(int u) {
-    while (S[ptr - len[u] - 1] != S[ptr]) u = fail[u];
-    return u;
-  }
-
-  void insert(char c) {
-    S[++ptr] = c;
-    int val = c - 'a', nd = getfail(last);
-    if (!ch[nd][val]) {
+  int ins(int c, int lst) {
+    str.push_back(c);
+    auto getfail = [&](int u) {
+      int n = str.size();
+      while (n < len[u] + 2 || str[n - len[u] - 2] != c)
+        u = fail[u];
+      return u;
+    };
+    int nd = getfail(lst);
+    if (!ch[nd][c]) {
       int p = ++nidx;
       len[p] = len[nd] + 2;
-      fail[p] = ch[getfail(fail[nd])][val];
-      ch[nd][val] = p;
-      if (len[p] <= 2) trans[p] = fail[p];
-      else {
-        int u = trans[nd];
-        while (S[ptr - len[u] - 1] != S[ptr] || 2 * (len[u]+2) > len[p]) u = fail[u];
-        trans[p] = ch[u][val];
-      }
+      fail[p] = ch[getfail(fail[nd])][c];
+      ch[nd][c] = p;
+      depth[p] = depth[fail[p]] + 1;
     }
-    last = ch[nd][val];
-  }
-
-  int solve() {
-    int ret = 0;
-    for (int i = nidx; i >= 2; --i)
-      if (len[trans[i]] * 2 == len[i] && len[trans[i]] % 2 == 0)
-        ret = max(ret, len[i]);
-    return ret;
+    return ch[nd][c];
   }
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  PAM::init();
-  scanf("%d%s", &n, S+1);
-
-  for (int i = 1; i <= n; ++i) PAM::insert(S[i]);
-
-  printf("%d\n", PAM::solve());
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  string s;
+  cin >> s;
+  int n = s.size();
+  PAM::init(n);
+  for (int lst = 0, k = 0, i = 0; i < n; ++i) {
+    int c = (s[i] - 'a' + k) % SIGMA;
+    lst = PAM::ins(c, lst);
+    cout << (k = PAM::depth[lst]) << " \n"[i + 1 == n];
+  }
   return 0;
 }

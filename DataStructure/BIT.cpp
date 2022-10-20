@@ -1,55 +1,53 @@
 // LOJ #132
 // DeP
-#include <cstdio>
+#include <bits/stdc++.h>
+using namespace std;
 
-typedef long long LL;
-const int MAXN = 1e6+5;
-
-int n, q;
-int A[MAXN];
+using LL = long long;
 
 namespace BIT {
-  LL C1[MAXN], C2[MAXN];
+  vector<LL> C1, C2;
 
   inline int lowbit(int x) { return x & -x; }
-
-  void Mdy(int pos, LL val) {
-    for (int i = pos; i <= n; i += lowbit(i))
-      C1[i] += val, C2[i] += val * pos;
-  }
-  inline void Mdy(const int& L, const int& R, const LL& v) {
-    Mdy(L, v), Mdy(R + 1, -v);
+  inline void init(int n) { // 1-index
+    C1.resize(n + 1), C2.resize(n + 1);
   }
 
-  LL Qry(int pos) {
+  void mdy(int p, LL d) {
+    int n = C1.size();
+    for (int i = p; i < n; i += lowbit(i))
+      C1[i] += d, C2[i] += d * p;
+  }
+  inline void mdy(int l, int r, LL d) {
+    mdy(l, d), mdy(r + 1, -d);
+  }
+
+  LL qry(int p) {
     LL ret = 0;
-    for (int i = pos; i; i -= lowbit(i))
-      ret += C1[i] * (pos+1) - C2[i];
+    for (int i = p; i > 0; i -= lowbit(i))
+      ret += C1[i] * (p + 1) - C2[i];
     return ret;
   }
-  inline LL Qry(const int& L, const int& R) {
-    return Qry(R) - Qry(L - 1);
+  inline LL qry(int l, int r) {
+    return qry(r) - qry(l - 1);
   }
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  scanf("%d%d", &n, &q);
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  int n, q;
+  cin >> n >> q;
+  vector<int> A(n + 1);
   for (int i = 1; i <= n; ++i)
-    scanf("%d", A+i);
-
+    cin >> A[i];
+  BIT::init(n);
   for (int i = 1; i <= n; ++i)
-    BIT::Mdy(i, A[i] - A[i-1]);
-
-  while (q--) {
-    static int opt, L, R, x;
-    scanf("%d%d%d", &opt, &L, &R);
+    BIT::mdy(i, A[i] - A[i - 1]);
+  for (int opt, l, r, x; q > 0; --q) {
+    cin >> opt >> l >> r;
     switch (opt) {
-      case 1: scanf("%d", &x), BIT::Mdy(L, R, x); break;
-      case 2: printf("%lld\n", BIT::Qry(L, R)); break;
-      default: fprintf(stderr, "f**k segment tree.\n");
+      case 1: cin >> x, BIT::mdy(l, r, x); break;
+      case 2: cout << BIT::qry(l, r) << '\n'; break;
     }
   }
   return 0;

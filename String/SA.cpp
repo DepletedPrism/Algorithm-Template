@@ -1,11 +1,9 @@
 // UOJ #35
 // DeP
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-const int MAXN = 1e5 + 5;
+constexpr int MAXN = 1e5 + 5;
 
 int n;
 char s[MAXN];
