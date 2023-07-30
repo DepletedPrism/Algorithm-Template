@@ -1,12 +1,11 @@
 // Luogu P5325
 // DeP
-#include <cmath>
-#include <cstdio>
+#include <bits/stdc++.h>
 using namespace std;
 
-typedef long long LL;
-const int MAXM = 2e5 + 5, P = 1e9 + 7;
-const int iv2 = 500000004, iv6 = 166666668;
+using LL = long long;
+constexpr int MAXM = 2e5 + 5, P = 1e9 + 7;
+constexpr int iv2 = 500000004, iv6 = 166666668;
 
 bool ip[MAXM];
 int pr[MAXM], cp;
@@ -32,7 +31,7 @@ LL n;
 int id1[MAXM], id2[MAXM], nw, m;
 LL w[MAXM], g1[MAXM], g2[MAXM];
 
-inline int& idx(LL d) {
+int& idx(LL d) {
   return (d <= m)? id1[d]: id2[n / d];
 }
 
@@ -51,11 +50,7 @@ int F(LL x, int k) {
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
   scanf("%lld", &n);
-
   m = sqrt(n), EulerSieve(m + 114);
   for (LL R, L = 1; L <= n; L = R + 1) {
     LL d = n / L;
@@ -69,7 +64,6 @@ int main() {
       g1[i] = (g1[i] - (g1[idx(v)] - sp1[j - 1] + P) * p1 % P + P) % P;
       g2[i] = (g2[i] - (g2[idx(v)] - sp2[j - 1] + P) * p2 % P + P) % P;
     }
-
   printf("%d\n", (F(n, 1) + 1) % P);
   return 0;
 }

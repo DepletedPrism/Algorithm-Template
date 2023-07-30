@@ -1,58 +1,37 @@
 // Luogu P3367
 // DeP
-#include <cctype>
-#include <cstdio>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
-
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
-  }
-  template<typename T> inline void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-    while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-    if (f) x = -x;
-  }
-}
-using IO::read;
-
-const int MAXN = 1e4 + 5, MAXM = 2e5 + 5;
-
-int n, q;
-
 namespace DSU {
-  int fa[MAXN], size[MAXN];
+  vector<int> fa, size;
 
-  inline void init() {
-    for (int i = 1; i <= n; ++i) fa[i] = i, size[i] = 1;
+  void init(int n) { // 0-index
+    fa.resize(n), size.resize(n);
+    iota(fa.begin(), fa.end(), 0);
+    fill(size.begin(), size.end(), 1);
   }
 
-  int Fnd(int u) {
-    return (fa[u] == u)? u: fa[u] = Fnd(fa[u]);
+  int findfa(int u) {
+    return (fa[u] == u)? u: fa[u] = findfa(fa[u]);
   }
-  inline void join(int fu, int fv) {
-    if (fu == fv) return;
-    if (size[fu] < size[fv]) swap(fu, fv);
+  void join(int fu, int fv) {
+    if (fu == fv)
+      return;
+    if (size[fu] < size[fv])
+      swap(fu, fv);
     fa[fv] = fu, size[fu] += size[fv];
   }
 }
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  read(n), read(q);
-
-  DSU::init();
-  for (int opt, u, v; q; --q) {
-    read(opt), read(u), read(v);
-    int fu = DSU::Fnd(u), fv = DSU::Fnd(v);
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  int n, q;
+  cin >> n >> q;
+  DSU::init(n + 1);
+  for (int opt, u, v; q > 0; --q) {
+    cin >> opt >> u >> v;
+    int fu = DSU::findfa(u), fv = DSU::findfa(v);
     switch (opt) {
       case 1: DSU::join(fu, fv); break;
       case 2: puts((fu == fv)? "Y": "N"); break;

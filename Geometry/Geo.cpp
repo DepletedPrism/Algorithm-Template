@@ -8,14 +8,14 @@ using namespace std;
 constexpr double PI = acos(-1.0);
 constexpr double EPS = 1e-9, INFD = 1e18;
 
-inline int dcmp(const double& p) {
+int dcmp(const double& p) {
   return (fabs(p) < EPS)? 0: (p < 0? -1: 1);
 }
 
-inline double torad(const double& deg) {
+double torad(const double& deg) {
   return deg / 180.0 * PI;
 }
-inline double NormalizeAngle(const double& rad) {
+double NormalizeAngle(const double& rad) {
   return rad - 2.0 * PI * floor(rad / (2.0 * PI));
 }
 
@@ -47,27 +47,27 @@ bool operator== (const Point& a, const Point& b) {
   return dcmp(a.x - b.x) == 0 && dcmp(a.y - b.y) == 0;
 }
 
-inline double Dot(const Vector& A, const Vector& B) {
+double Dot(const Vector& A, const Vector& B) {
   return A.x * B.x + A.y * B.y;
 }
-inline double Cross(const Vector& A, const Vector& B) {
+double Cross(const Vector& A, const Vector& B) {
   return A.x * B.y - A.y * B.x;
 }
-inline double Length(const Vector& A) {
+double Length(const Vector& A) {
   return sqrt(Dot(A, A));
 }
-inline double Area2(const Point& A, const Point& B, const Point& C) {
+double Area2(const Point& A, const Point& B, const Point& C) {
   return Cross(B - A, C - A);
 }
 
-inline double Angle(const Vector& A, const Vector& B) {
+double Angle(const Vector& A, const Vector& B) {
   return acos(Dot(A, B) / Length(A) / Length(B));
 }
-inline double angle(const Vector& A) {
+double angle(const Vector& A) {
   return atan2(A.y, A.x); // [-pi, pi]
 }
 
-inline double VectorAngleDegree(const Vector& v) {
+double VectorAngleDegree(const Vector& v) {
   double ang = angle(v) * 180.0 / PI;
   while (dcmp(ang) < 0)
     ang += 360.0;
@@ -76,12 +76,12 @@ inline double VectorAngleDegree(const Vector& v) {
   return ang;
 }
 
-inline Vector Rotate(const Vector& A, const double& rad) {
+Vector Rotate(const Vector& A, const double& rad) {
   return Vector(A.x * cos(rad) - A.y * sin(rad),
       A.y * cos(rad) + A.x * sin(rad));
 }
 
-inline Vector Normal(const Vector& A) {
+Vector Normal(const Vector& A) {
   assert(dcmp(A.x) != 0 || dcmp(A.y) != 0);
   double L = Length(A);
   return Vector(-A.y / L, A.x / L);
@@ -95,30 +95,30 @@ struct Line {
   Line(Point _p, Vector _v): p(_p), v(_v) { ang = angle(v);  }
 
   bool operator < (const Line& rhs) const { return ang < rhs.ang; }
-  inline Point point(const double& t) const {
+  Point point(const double& t) const {
     return p + v * t;
   }
-  inline Line move(double d) const {
+  Line move(double d) const {
     return Line(p + Normal(v) * d, v);
   }
 };
 
-inline Point LineIntersection(Point P, Vector v, Point Q, Vector w) {
+Point LineIntersection(Point P, Vector v, Point Q, Vector w) {
   assert(dcmp(Cross(v, w)) != 0);
   return P + v * (Cross(w, P - Q) / Cross(v, w));
 }
 
-inline Point LineIntersection(const Line& A, const Line& B) {
+Point LineIntersection(const Line& A, const Line& B) {
   assert(dcmp(Cross(A.v, B.v)) != 0);
   return A.point(Cross(B.v, A.p - B.p) / Cross(A.v, B.v));
 }
 
-inline double DistanceToLine(Point P, Point A, Point B) {
+double DistanceToLine(Point P, Point A, Point B) {
   Vector v1 = B - A, v2 = P - A;
   return fabs(Cross(v1, v2)) / Length(v1);
 }
 
-inline double DistanceToSegment(Point P, Point A, Point B) {
+double DistanceToSegment(Point P, Point A, Point B) {
   if (A == B) return Length(P - A);
   Vector v1 = B - A, v2 = P - A, v3 = P - B;
   if (dcmp(Dot(v1, v2)) < 0) return Length(v2);
@@ -126,19 +126,19 @@ inline double DistanceToSegment(Point P, Point A, Point B) {
   return fabs(Cross(v1, v2)) / Length(v1);
 }
 
-inline Point LineProjection(Point P, Point A, Point B) {
+Point LineProjection(Point P, Point A, Point B) {
   Vector v = B - A;
   return A + v * (Dot(v, P - A) / Dot(v, v));
 }
 
-inline bool SegmentProperIntersection(Point a1, Point a2,
+bool SegmentProperIntersection(Point a1, Point a2,
     Point b1, Point b2) {
   double c1 = Cross(a2 - a1, b1 - a1), c2 = Cross(a2 - a1, b2 - a1),
          c3 = Cross(b2 - b1, a1 - b1), c4 = Cross(b2 - b1, a2 - b1);
   return dcmp(c1) * dcmp(c2) < 0 && dcmp(c3) * dcmp(c4) < 0;
 }
 
-inline bool onSegment(Point p, Point a1, Point a2) {
+bool onSegment(Point p, Point a1, Point a2) {
   return dcmp(Cross(a1-p, a2-p)) == 0 && dcmp(Dot(a1-p, a2-p)) < 0;
 }
 
@@ -149,16 +149,16 @@ struct Circle {
   Circle() { c = Point(0.0, 0.0), r = 0.0; }
   Circle(Point _c, double _r): c(_c), r(_r) { }
 
-  inline Point point(double a) {
+  Point point(double a) {
     return Point(c.x + r * cos(a), c.y + r * sin(a));
   }
 };
 
-inline bool inCircle(const Point& p, const Circle& C) {
+bool inCircle(const Point& p, const Circle& C) {
   return dcmp(Length(p - C.c) - C.r) <= 0;
 }
 
-inline int LineCircleIntersection(Line L, Circle C,
+int LineCircleIntersection(Line L, Circle C,
     double& t1, double& t2, vector<Point>& sol) {
   double a = L.v.x, b = L.p.x - C.c.x, c = L.v.y, d = L.p.y - C.c.y;
   double e = a*a + c*c, f = 2.0*a*b + 2.0*c*d, g = b*b + d*d - C.r*C.r;
@@ -174,7 +174,7 @@ inline int LineCircleIntersection(Line L, Circle C,
   return 2;
 }
 
-inline int CircleCircleIntersection(Circle C1, Circle C2,
+int CircleCircleIntersection(Circle C1, Circle C2,
     vector<Point>& sol) {
   double d = Length(C1.c - C2.c);
   if (dcmp(d) == 0)
@@ -193,7 +193,7 @@ inline int CircleCircleIntersection(Circle C1, Circle C2,
   return 2;
 }
 
-inline int Tangents(Point p, Circle C, vector<Vector>& v) {
+int Tangents(Point p, Circle C, vector<Vector>& v) {
   Vector u = C.c - p;
   double dist = Length(u);
   if (dist < C.r) return 0;
@@ -206,7 +206,7 @@ inline int Tangents(Point p, Circle C, vector<Vector>& v) {
   return 2;
 }
 
-inline int Tangents(Circle C1, Circle C2, vector<Point>& a, vector<Point>& b) {
+int Tangents(Circle C1, Circle C2, vector<Point>& a, vector<Point>& b) {
   if (C1.r < C2.r)
     swap(C1, C2), swap(a, b);
   double d = Length(C1.c - C2.c), rmns = C1.r - C2.r, rpls = C1.r + C2.r;
@@ -237,7 +237,7 @@ inline int Tangents(Circle C1, Circle C2, vector<Point>& a, vector<Point>& b) {
   return cnt;
 }
 
-inline Circle CircumscribedCircle(Point p1, Point p2, Point p3) {
+Circle CircumscribedCircle(Point p1, Point p2, Point p3) {
   Vector B = p2 - p1, C = p3 - p1;
   double D = 2 * Cross(B, C);
   double cx = (C.y * Dot(B, B) - B.y * Dot(C, C)) / D + p1.x,
@@ -246,7 +246,7 @@ inline Circle CircumscribedCircle(Point p1, Point p2, Point p3) {
   return Circle(p, Length(p1 - p));
 }
 
-inline Circle InscribedCircle(Point p1, Point p2, Point p3) {
+Circle InscribedCircle(Point p1, Point p2, Point p3) {
   double a = Length(p2 - p3), b = Length(p3 - p1), c = Length(p1 - p2);
   Point p = (p1 * a + p2 * b + p3 * c) / (a + b + c);
   return Circle(p, DistanceToLine(p, p1, p2));
@@ -346,7 +346,7 @@ double ConvexHullDiameter(vector<Point> P) {
   return ret;
 }
 
-inline bool onLeft(const Line& L, const Point& p) {
+bool onLeft(const Line& L, const Point& p) {
   return dcmp(Cross(L.v, p - L.p)) > 0;
 }
 
