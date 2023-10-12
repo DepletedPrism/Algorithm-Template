@@ -3,6 +3,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+constexpr int SIGMA = 26;
+
 int main() {
   ios::sync_with_stdio(false), cin.tie(nullptr);
   string s, t;
@@ -20,7 +22,7 @@ int main() {
     while (j > 0 && t[i] != s[j]) j = fail[j - 1];
     if (t[i] == s[j]) ++j;
     if (j == n)
-      cout << i - n + 2 << '\n';
+      cout << i - n + 2 << '\n', j = fail[j - 1];
   }
 
   // KMP automaton

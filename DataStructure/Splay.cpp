@@ -1,152 +1,164 @@
 // LOJ #104
-// DeP
-#include <cctype>
-#include <cstdio>
-#include <cassert>
-#include <algorithm>
+#include <bits/stdc++.h>
 using namespace std;
 
-namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
+template<typename T = int> struct Splay {
+  struct Node {
+    array<int, 2> ch;
+    int pre, size, cnt;
+    T val;
+    Node(const T& _v, int _c)
+      : ch({-1, -1}), pre(-1), size(_c), cnt(_c), val(_v) {}
+  };
+  int rt;
+  vector<int> stk;
+  vector<Node> nodes;
 
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
-  }
-  template<typename T> inline void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-    while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-    if (f) x = -x;
-  }
-}
-using IO::read;
-
-const int MAXN = 1e5 + 5;
-
-int q;
-
-namespace Splay {
-  int root, nidx;
-  int ch[2][MAXN], pre[MAXN], size[MAXN], cnt[MAXN], val[MAXN];
-
-  inline int newnode(const int& v, const int& c = 1) {
-    return ++nidx, val[nidx] = v, size[nidx] = cnt[nidx] = c, nidx;
+  Splay(): rt(-1) {}
+  Splay(const vector<T>& vec) {
+    auto build = [&](auto self, int l, int r, int fa) -> int {
+      if (l > r) return -1;
+      int mid = (l + r) / 2, u = newnode(vec[mid]);
+      nodes[u].ch[0] = self(self, l, mid - 1, u);
+      nodes[u].ch[1] = self(self, mid + 1, r, u);
+      maintain(u);
+      return u;
+    };
+    rt = build(build, 0, (int) vec.size() - 1, -1);
   }
 
-  inline void maintain(int nd) {
-    size[nd] = cnt[nd];
-    if (ch[0][nd] > 0) size[nd] += size[ch[0][nd]];
-    if (ch[1][nd] > 0) size[nd] += size[ch[1][nd]];
+  int newnode(const T& v, int c = 1) {
+    if (stk.size() > 0) {
+      int nd = stk.back();
+      stk.pop_back();
+      nodes[nd] = Node(v, c);
+      return nd;
+    }
+    nodes.push_back(Node(v, c));
+    return (int) nodes.size() - 1;
+  }
+  void maintain(int u) {
+    auto& nd = nodes[u];
+    nd.size = nd.cnt;
+    if (~nd.ch[0]) nd.size += nodes[nd.ch[0]].size;
+    if (~nd.ch[1]) nd.size += nodes[nd.ch[1]].size;
   }
 
-  inline int which(int u) { return (pre[u] > 0)? ch[1][pre[u]] == u: 0; }
-
-  inline void connect(int u, int fa, int w) {
-    if (u > 0) pre[u] = fa;
-    if (fa > 0) ch[w][fa] = u; else root = u;
+  int which(int u) {
+    return (~nodes[u].pre)? nodes[nodes[u].pre].ch[1] == u: 0;
   }
-  inline void rotate(int u) {
-    int fa = pre[u], w = which(u);
-    connect(u, pre[fa], which(fa));
-    connect(ch[w ^ 1][u], fa, w), connect(fa, u, w ^ 1);
+  void connect(int u, int fa, int w) {
+    if (~u) nodes[u].pre = fa;
+    if (~fa) nodes[fa].ch[w] = u; else rt = u;
+  }
+  void rotate(int u) {
+    int fa = nodes[u].pre, w = which(u);
+    connect(u, nodes[fa].pre, which(fa));
+    connect(nodes[u].ch[w ^ 1], fa, w);
+    connect(fa, u, w ^ 1);
     maintain(fa);
   }
   void splay(int u, int v) {
-    v = pre[v];
-    while (pre[u] != v) {
-      int fa = pre[u];
-      if (pre[fa] != v) which(fa) == which(u)? rotate(fa): rotate(u);
+    v = nodes[v].pre;
+    while (nodes[u].pre != v) {
+      int fa = nodes[u].pre;
+      if (nodes[fa].pre != v)
+        which(fa) == which(u)? rotate(fa): rotate(u);
       rotate(u);
     }
     maintain(u);
   }
 
-  void Ins(const int& v) {
-    if (!root) return void( root = newnode(v) );
-    for (int w, nd = root; nd; nd = ch[w][nd]) {
-      if (val[nd] == v)
-        return ++cnt[nd], splay(nd, root);
-      if (!ch[w = (val[nd] < v)][nd]) {
-        ch[w][nd] = newnode(v), pre[ch[w][nd]] = nd;
-        return splay(ch[w][nd], root);
+  void ins(const T& v) {
+    if (rt == -1)
+      return void(rt = newnode(v));
+    for (int w, u = rt; ~u; u = nodes[u].ch[w]) {
+      auto& nd = nodes[u];
+      if (nd.val == v)
+        return ++nd.cnt, splay(u, rt);
+      if (nd.ch[w = (nd.val < v)] == -1) {
+        nodes[u].ch[w] = newnode(v);
+        nodes[nodes[u].ch[w]].pre = u;
+        return splay(nodes[u].ch[w], rt);
       }
     }
   }
 
-  inline void Fnd(const int& v) {
-    for (int nd = root; nd; nd = ch[val[nd] < v][nd])
-      if (val[nd] == v) return splay(nd, root);
+  void fnd(const T& v) {
+    for (int nd = rt; ~nd; nd = nodes[nd].ch[nodes[nd].val < v])
+      if (nodes[nd].val == v) return splay(nd, rt);
     assert(false);
   }
-  void Del(const int& v) {
-    Fnd(v);
-    if (cnt[root] > 1)
-      return void( --cnt[root] );
-    if (!ch[0][root] && !ch[1][root])
-      return void( root = 0 );
-    if (!ch[0][root] || !ch[1][root]) {
-      int w = !ch[0][root];
-      return root = ch[w][root], void( pre[root] = 0 );
+  void del(const T& v) {
+    fnd(v);
+    auto& nd = nodes[rt];
+    if (nd.cnt > 1)
+      return void(--nd.cnt);
+    if (nd.ch[0] == -1 && nd.ch[1] == -1) {
+      stk.push_back(rt);
+      return void(rt = -1);
     }
-    int nd = ch[0][root];
-    while (ch[1][nd] > 0) nd = ch[1][nd];
-    splay(nd, ch[0][root]);
-    ch[1][nd] = ch[1][root], pre[nd] = 0;
-    root = pre[ch[1][nd]] = nd, maintain(nd);
+    if (nd.ch[0] == -1 || nd.ch[1] == -1) {
+      int w = (nd.ch[0] == -1);
+      stk.push_back(rt);
+      return rt = nd.ch[w], void(nodes[rt].pre = -1);
+    }
+    int u = nd.ch[0];
+    while (~nodes[u].ch[1]) u = nodes[u].ch[1];
+    splay(u, nd.ch[0]);
+    nodes[u].ch[1] = nd.ch[1], nodes[u].pre = -1;
+    stk.push_back(rt);
+    rt = nodes[nodes[u].ch[1]].pre = u;
+    maintain(u);
   }
 
-  int build(const int* A, int L, int R, int fa) {
-    if (L > R) return 0;
-    int Mid = (L + R) / 2, nd = newnode(A[Mid]);
-    pre[nd] = fa;
-    ch[0][nd] = build(A, L, Mid - 1, nd);
-    ch[1][nd] = build(A, Mid + 1, R, nd);
-    return maintain(nd), nd;
-  }
-
-  void Kth(int nd, int k) {
-    while (nd > 0) {
-      if (ch[0][nd] > 0) {
-        int t = size[ch[0][nd]];
-        if (k <= t) { nd = ch[0][nd]; continue; }
-        k -= t;
+  int rnk(T v) {
+    int lst = -1, u = rt, ret = 1;
+    while (~u) {
+      const auto& nd = nodes[u];
+      if (nd.val < v) {
+        ret += ((~nd.ch[0])? nodes[nd.ch[0]].size: 0) + nd.cnt;
+        lst = u, u = nd.ch[1];
+      } else {
+        lst = u, u = nd.ch[0];
       }
-      if (k <= cnt[nd])
-        return printf("%d\n", val[nd]), splay(nd, root);
-      k -= cnt[nd], nd = ch[1][nd];
+    }
+    if (~lst) splay(lst, rt);
+    return ret;
+  }
+
+  int kth(int k) {
+    int u = rt;
+    while (~u) {
+      const auto& nd = nodes[u];
+      int t = (~nd.ch[0])? nodes[nd.ch[0]].size: 0;
+      if (t < k && k <= t + nd.cnt)
+        return splay(u, rt), nd.val;
+      t += nd.cnt;
+      if (k > t) k -= t, u = nd.ch[1];
+      else u = nd.ch[0];
     }
     assert(false);
   }
 
-  inline void Rnk(const int& x) {
-    Ins(x), printf("%d\n", size[ch[0][root]] + 1), Del(x);
-  }
-  inline void Nxt(const int& x, int w) {
-    Ins(x);
-    int nd = ch[w][root]; w ^= 1;
-    while (ch[w][nd] > 0) nd = ch[w][nd];
-    printf("%d\n", val[nd]);
-    Del(x), splay(nd, root);
-  }
-}
+  T pre(const T& v) { return kth(rnk(v) - 1); }
+  T suf(const T& v) { return kth(rnk(v + 1)); }
+};
 
 int main() {
-#ifndef ONLINE_JUDGE
-  freopen("input.in", "r", stdin);
-#endif
-  read(q);
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  int q;
+  cin >> q;
+  Splay t;
   for (int opt, x; q; --q) {
-    read(opt), read(x);
+    cin >> opt >> x;
     switch (opt) {
-      case 1: Splay::Ins(x); break;
-      case 2: Splay::Del(x); break;
-      case 3: Splay::Rnk(x); break;
-      case 4: Splay::Kth(Splay::root, x); break;
-      case 5: Splay::Nxt(x, 0); break;
-      case 6: Splay::Nxt(x, 1); break;
-      default: fprintf(stderr, "ERR\n");
+      case 1: t.ins(x); break;
+      case 2: t.del(x); break;
+      case 3: cout << t.rnk(x) << '\n'; break;
+      case 4: cout << t.kth(x) << '\n'; break;
+      case 5: cout << t.pre(x) << '\n'; break;
+      case 6: cout << t.suf(x) << '\n'; break;
     }
   }
   return 0;
