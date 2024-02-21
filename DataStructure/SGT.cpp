@@ -1,113 +1,135 @@
 // Luogu P3373
-// DeP
-#include <cctype>
-#include <cstdio>
+#include <bits/stdc++.h>
+using namespace std;
 
-namespace IO {
-  const int MAXSIZE = 1 << 18 | 1;
-  char buf[MAXSIZE], *p1, *p2;
+using LL = long long;
+constexpr int P = 571373;
 
-  inline int Gc() {
-    return p1 == p2 &&
-      (p2 = (p1 = buf) + fread(buf, 1, MAXSIZE, stdin), p1 == p2)? EOF: *p1++;
+struct Node {
+  int s;
+  explicit Node(int _s = 0): s(_s) {}
+  Node operator + (const Node& rhs) {
+    return Node((s + rhs.s) % P);
   }
-  template<typename T> inline void read(T& x) {
-    x = 0; int f = 0, ch = Gc();
-    while (!isdigit(ch)) f |= ch == '-', ch = Gc();
-    while (isdigit(ch)) x = x * 10 + ch - '0', ch = Gc();
-    if (f) x = -x;
-  }
-}
-using IO::read;
-
-typedef long long LL;
-const int MAXN = 1e5 + 5, P = 571373;
-
-int n, q, p;
-int A[MAXN];
+};
 
 #define lc (nd << 1)
 #define rc (nd << 1 | 1)
-namespace SGT {
-  int s[MAXN << 2], tm[MAXN << 2], ta[MAXN << 2];
+struct SGT {
+  int n;
+  vector<Node> s;
+  vector<int> ta, tm;
 
-  inline void maintain(int nd) { s[nd] = (s[lc] + s[rc]) % p; }
-
-  inline void pushm(int nd, const int& v) {
-    s[nd] = (LL) s[nd] * v % p;
-    ta[nd] = (LL) ta[nd] * v % p, tm[nd] = (LL) tm[nd] * v % p;
+  SGT(int _n, const vector<int>& a)
+      : n(_n), s(n << 2), ta(n << 2, 0), tm(n << 2, 1) {
+    auto build = [&](auto self, int nd, int l, int r) {
+      if (l == r) {
+        s[nd] = Node(a[l - 1]);
+        return;
+      }
+      int mid = (l + r) / 2;
+      self(self, lc, l, mid);
+      self(self, rc, mid + 1, r);
+      maintain(nd);
+    };
+    build(build, 1, 1, n);
   }
-  inline void pusha(int nd, int L, int R, const int& v) {
-    ta[nd] = (ta[nd] + v) % p;
-    s[nd] = (s[nd] + (LL) (R - L + 1) * v) % p;
+
+  void maintain(int nd) {
+    s[nd] = s[lc] + s[rc];
   }
 
-  inline void pushdown(int nd, int L, int R) {
-    if (tm[nd] != 1)
-      pushm(lc, tm[nd]), pushm(rc, tm[nd]), tm[nd] = 1;
-    if (ta[nd] > 0) {
-      int Mid = (L + R) / 2;
-      pusha(lc, L, Mid, ta[nd]), pusha(rc, Mid + 1, R, ta[nd]), ta[nd] = 0;
+  void pushm(int nd, LL v) {
+    ta[nd] = static_cast<int>(ta[nd] * v % P);
+    tm[nd] = static_cast<int>(tm[nd] * v % P);
+    s[nd].s = static_cast<int>(s[nd].s * v % P);
+  }
+  void pusha(int nd, int L, int R, int v) {
+    ta[nd] = (ta[nd] + v) % P;
+    s[nd].s = static_cast<int>((s[nd].s + (R - L + 1LL) * v) % P);
+  }
+  void pushdown(int nd, int l, int r) {
+    if (tm[nd] != 1) {
+      pushm(lc, tm[nd]);
+      pushm(rc, tm[nd]);
+      tm[nd] = 1;
+    }
+    if (ta[nd] != 0) {
+      int mid = (l + r) / 2;
+      pusha(lc, l, mid, ta[nd]);
+      pusha(rc, mid + 1, r, ta[nd]);
+      ta[nd] = 0;
     }
   }
 
-  void build(int nd, int L, int R) {
-    tm[nd] = 1, ta[nd] = s[nd] = 0;
-    if (L == R) return void( s[nd] = A[L] );
-    int Mid = (L + R) / 2;
-    build(lc, L, Mid), build(rc, Mid + 1, R);
+  void add(int nd, int l, int r, int opl, int opr, int v) {
+    if (opl <= l && r <= opr)
+      return pusha(nd, l, r, v);
+    pushdown(nd, l, r);
+    int mid = (l + r) / 2;
+    if (opl <= mid)
+      add(lc, l, mid, opl, opr, v);
+    if (opr > mid)
+      add(rc, mid + 1, r, opl, opr, v);
     maintain(nd);
   }
+  void add(int l, int r, int v) {
+    add(1, 1, n, l, r, v);
+  }
 
-  void Add(int nd, int L, int R, int opL, int opR, const int& v) {
-    if (opL <= L && R <= opR) return pusha(nd, L, R, v);
-    pushdown(nd, L, R);
-    int Mid = (L + R) / 2;
-    if (opL <= Mid) Add(lc, L, Mid, opL, opR, v);
-    if (opR > Mid) Add(rc, Mid + 1, R, opL, opR, v);
+  void mul(int nd, int l, int r, int opl, int opr, int v) {
+    if (opl <= l && r <= opr)
+      return pushm(nd, v);
+    pushdown(nd, l, r);
+    int mid = (l + r) / 2;
+    if (opl <= mid)
+      mul(lc, l, mid, opl, opr, v);
+    if (opr > mid)
+      mul(rc, mid + 1, r, opl, opr, v);
     maintain(nd);
   }
-
-  void Mul(int nd, int L, int R, int opL, int opR, const int& v) {
-    if (opL <= L && R <= opR) return pushm(nd, v);
-    pushdown(nd, L, R);
-    int Mid = (L + R) / 2;
-    if (opL <= Mid) Mul(lc, L, Mid, opL, opR, v);
-    if (opR > Mid) Mul(rc, Mid + 1, R, opL, opR, v);
-    maintain(nd);
+  void mul(int l, int r, int v) {
+    mul(1, 1, n, l, r, v);
   }
 
-  int Qry(int nd, int L, int R, int opL, int opR) {
-    if (opL <= L && R <= opR) return s[nd];
-    pushdown(nd, L, R);
-    int Mid = (L + R) / 2;
-    if (opR <= Mid) return Qry(lc, L, Mid, opL, opR);
-    if (opL > Mid) return Qry(rc, Mid + 1, R, opL, opR);
-    return (Qry(lc, L, Mid, opL, opR) + Qry(rc, Mid + 1, R, opL, opR)) % p;
+  Node qry(int nd, int l, int r, int opl, int opr) {
+    if (opl <= l && r <= opr)
+      return s[nd];
+    pushdown(nd, l, r);
+    int mid = (l + r) / 2;
+    if (opr <= mid)
+      return qry(lc, l, mid, opl, opr);
+    if (opl > mid)
+      return qry(rc, mid + 1, r, opl, opr);
+    // note: when the length of interval affects the result
+    // use [max{opl, l}, mid] and [mid + 1, min{opr, r}]
+    return qry(lc, l, mid, opl, opr) + qry(rc, mid + 1, r, opl, opr);
   }
-}
+  Node qry(int l, int r) {
+    return qry(1, 1, n, l, r);
+  }
+};
 #undef lc
 #undef rc
 
 int main() {
-  read(n), read(q), read(p);
-  for (int i = 1; i <= n; ++i) read(A[i]);
-
-  SGT::build(1, 1, n);
-  for (int opt, L, R, x; q; --q) {
-    read(opt), read(L), read(R);
-    switch (opt) {
-      case 1:
-        read(x), x = (x % p + p) % p;
-        SGT::Mul(1, 1, n, L, R, x);
-        break;
-      case 2:
-        read(x), x = (x % p + p) % p;
-        SGT::Add(1, 1, n, L, R, x);
-        break;
-      case 3:
-        printf("%d\n", SGT::Qry(1, 1, n, L, R));
-        break;
+  ios::sync_with_stdio(false), cin.tie(nullptr);
+  int n, q, p;
+  cin >> n >> q >> p;
+  vector<int> a(n);
+  for (int i = 0; i < n; ++i)
+    cin >> a[i];
+  SGT t(n, a);
+  for (int opt, l, r, x; q; --q) {
+    cin >> opt >> l >> r;
+    if (opt == 1) {
+      cin >> x;
+      t.mul(l, r, (x % p + p) % p);
+    } else if (opt == 2) {
+      cin >> x;
+      t.add(l, r, (x % p + p) % p);
+    } else if (opt == 3) {
+      cout << t.qry(l, r).s << '\n';
     }
   }
   return 0;
